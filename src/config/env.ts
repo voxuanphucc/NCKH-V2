@@ -1,3 +1,3 @@
 export const env = {
-  API_URL: 'https://genealogy-service.onrender.com/api/v1'
+  API_URL: import.meta.env.VITE_API_URL
 };
