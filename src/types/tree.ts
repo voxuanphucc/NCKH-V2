@@ -1,0 +1,28 @@
+import type { TreeRole, MemberStatus } from './common';
+
+export interface Tree {
+  id: string;
+  name: string;
+  description: string;
+  myRole: TreeRole;
+  totalMembers: number;
+  totalPersons: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTreeRequest {
+  name: string;
+  description: string;
+}
+
+export interface TreeMember {
+  id: string;
+  userId: string;
+  userName: string;
+  fullName: string;
+  avatarUrl: string;
+  role: TreeRole;
+  status: MemberStatus;
+  joinedAt: string;
+}
