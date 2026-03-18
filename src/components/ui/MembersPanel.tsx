@@ -15,6 +15,8 @@ import {
 'lucide-react';
 import { treeService } from '../../services/treeService';
 import { invitationService } from '../../services/invitationService';
+import { showSuccessToast } from '../../utils/validation';
+import { ConfirmationModal } from './ConfirmationModal';
 import type { TreeMember } from '../../types/tree';
 import type { ShareLink } from '../../types/invitation';
 import type { TreeRole } from '../../types/common';
@@ -36,6 +38,9 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
   const [inviteSuccess, setInviteSuccess] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +78,7 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
         email: inviteEmail,
         role: inviteRole
       });
+      showSuccessToast(`Đã gửi lời mời đến ${inviteEmail}`);
       setInviteSuccess(`Đã gửi lời mời đến ${inviteEmail}`);
       setInviteEmail('');
     } catch (err: unknown) {
@@ -88,6 +94,7 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
         expiredAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
       });
       if (res.success) {
+        showSuccessToast('Tạo link chia sẻ thành công');
         setShareLinks((prev) => [...prev, res.data]);
       }
     } catch (err: unknown) {
@@ -96,21 +103,28 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
   };
   const handleCopyLink = (link: ShareLink) => {
     navigator.clipboard.writeText(link.shareUrl);
+    showSuccessToast('Đã sao chép link vào clipboard');
     setCopiedId(link.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
   const handleRemoveMember = async (userId: string) => {
-    if (!confirm('Xóa thành viên này khỏi cây gia phả?')) return;
+    setDeleting(true);
     try {
       await treeService.removeMember(treeId, userId);
+      showSuccessToast('Xóa thành viên thành công');
       setMembers((prev) => prev.filter((m) => m.userId !== userId));
+      setShowDeleteConfirm(false);
+      setDeletingUserId(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Không thể xóa thành viên');
+    } finally {
+      setDeleting(false);
     }
   };
   const handleChangeRole = async (userId: string, newRole: TreeRole) => {
     try {
       await treeService.changeMemberRole(treeId, userId, newRole);
+      showSuccessToast('Thay đổi vai trò thành công');
       setMembers((prev) =>
       prev.map((m) =>
       m.userId === userId ?
@@ -246,7 +260,10 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
                         <option value="ADMIN">Quản trị</option>
                       </select>
                       <button
-                  onClick={() => handleRemoveMember(member.userId)}
+                  onClick={() => {
+                    setDeletingUserId(member.userId);
+                    setShowDeleteConfirm(true);
+                  }}
                   className="p-1.5 rounded-lg text-warm-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                   
                         <TrashIcon className="w-3.5 h-3.5" />
@@ -365,6 +382,21 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
             </div>
           }
         </div>
+
+        <ConfirmationModal
+          isOpen={showDeleteConfirm}
+          title="Xóa thành viên?"
+          message="Thành viên này sẽ bị xóa khỏi cây gia phả. Hành động này không thể được hoàn tác."
+          confirmText="Xóa"
+          cancelText="Hủy"
+          isDangerous
+          isLoading={deleting}
+          onConfirm={() => deletingUserId && handleRemoveMember(deletingUserId)}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setDeletingUserId(null);
+          }}
+        />
       </div>
     </div>);
 

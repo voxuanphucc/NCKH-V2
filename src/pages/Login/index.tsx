@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TreesIcon, EyeIcon, EyeOffIcon, LoaderIcon } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
+import { showSuccessToast } from '../../utils/validation';
 import type { Gender } from '../../types/common';
 
 export function LoginPage() {
@@ -35,6 +36,7 @@ export function LoginPage() {
         password
       });
       if (res.success) {
+        showSuccessToast('Đăng nhập thành công');
         login(res.data);
         navigate('/dashboard');
       } else {
@@ -70,6 +72,7 @@ export function LoginPage() {
         dateOfBirth: regDob
       });
       if (res.success) {
+        showSuccessToast('Đăng ký thành công');
         login(res.data);
         navigate('/dashboard');
       } else {

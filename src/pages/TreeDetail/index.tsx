@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeftIcon,
@@ -15,6 +15,7 @@ import {
 import { treeService } from '../../services/treeService';
 import { familyService } from '../../services/familyService';
 import { eventService } from '../../services/eventService';
+import { showSuccessToast } from '../../utils/validation';
 import type { Tree } from '../../types/tree';
 import type { TreeGraph } from '../../types/family';
 import type { TreeEvent } from '../../types/event';
@@ -55,6 +56,7 @@ export function TreeDetailPage() {
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [savingTree, setSavingTree] = useState(false);
+  
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -79,9 +81,10 @@ export function TreeDetailPage() {
     } finally {setLoading(false);
     }
   }, [treeId]);
+
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [treeId, fetchData]);
   const handleAddPerson = async (data: PersonFormData) => {
     setAddPersonLoading(true);
     try {
@@ -136,6 +139,7 @@ export function TreeDetailPage() {
         };
         await familyService.addChild(treeId, addPersonFamilyId, req);
       }
+      showSuccessToast('Thêm thành viên gia đình thành công');
       setAddPersonMode(null);
       fetchData();
     } catch (err) {
@@ -152,6 +156,7 @@ export function TreeDetailPage() {
         description: editDesc
       });
       if (res.success) {
+        showSuccessToast('Cập nhật cây gia phả thành công');
         setTree(res.data);
         setIsEditingTree(false);
       }

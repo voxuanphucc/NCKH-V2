@@ -12,6 +12,7 @@ import {
 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
+import { showSuccessToast } from '../../utils/validation';
 import type { Gender } from '../../types/common';
 export function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -49,6 +50,7 @@ export function ProfilePage() {
         avatarUrl: user?.avatarUrl || ''
       });
       await refreshUser();
+      showSuccessToast('Cập nhật thông tin thành công!');
       setProfileSuccess('Cập nhật thông tin thành công!');
     } catch (err: unknown) {
       setProfileError(err instanceof Error ? err.message : 'Cập nhật thất bại');
@@ -71,6 +73,7 @@ export function ProfilePage() {
         newPassword,
         confirmPassword
       });
+      showSuccessToast('Đổi mật khẩu thành công!');
       setPwSuccess('Đổi mật khẩu thành công!');
       setOldPassword('');
       setNewPassword('');

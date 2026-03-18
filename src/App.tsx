@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LandingPage } from './pages/Landing';
 import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';

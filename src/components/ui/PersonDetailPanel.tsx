@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Children } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   XIcon,
   UserIcon,
@@ -19,7 +19,9 @@ import { familyService } from '../../services/familyService';
 import { eventService } from '../../services/eventService';
 import { addressService } from '../../services/addressService';
 import { mediaService } from '../../services/mediaService';
+import { showSuccessToast } from '../../utils/validation';
 import { getDefaultAvatar } from '../../utils/getDefaultAvatar';
+import { ConfirmationModal } from './ConfirmationModal';
 import type { Person } from '../../types/person';
 import type { FamilyInfo } from '../../types/family';
 import type { TreeEvent } from '../../types/event';
@@ -57,20 +59,36 @@ export function PersonDetailPanel({
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   // Edit form state
   const [editFirstName, setEditFirstName] = useState('');
   const [editLastName, setEditLastName] = useState('');
   const [editGender, setEditGender] = useState<Gender>('MALE');
   const [editDob, setEditDob] = useState('');
   const [editDod, setEditDod] = useState('');
+  
   useEffect(() => {
+    // Create an abort controller to cancel requests if component unmounts
+    const abortController = new AbortController();
+    let isMounted = true;
+
     const fetchData = async () => {
+      // Don't fetch if already fetching for this person
+      if (!isMounted || abortController.signal.aborted) return;
+      
       setLoading(true);
       try {
         const [personRes, familyRes, eventsRes, addressRes, mediaRes] =
         await Promise.all([
-        personService.getPerson(personId),
-        familyService.getPersonFamily(treeId, personId),
+        personService.getPerson(personId).catch(() => ({
+          success: false,
+          data: null
+        })),
+        familyService.getPersonFamily(treeId, personId).catch(() => ({
+          success: false,
+          data: null
+        })),
         eventService.getPersonEvents(treeId, personId).catch(() => ({
           success: true,
           data: []
@@ -84,7 +102,10 @@ export function PersonDetailPanel({
           data: []
         }))]
         );
-        if (personRes.success) {
+        
+        if (!isMounted || abortController.signal.aborted) return;
+
+        if (personRes.success && personRes.data) {
           setPerson(personRes.data);
           setEditFirstName(personRes.data.firstName);
           setEditLastName(personRes.data.lastName);
@@ -100,17 +121,25 @@ export function PersonDetailPanel({
             ''
           );
         }
-        if (familyRes.success) setFamilyInfo(familyRes.data);
+        if (familyRes.success && familyRes.data) setFamilyInfo(familyRes.data);
         if (eventsRes.success) setEvents(eventsRes.data as TreeEvent[]);
         if (addressRes.success) setAddresses(addressRes.data as Address[]);
         if (mediaRes.success) setMedia(mediaRes.data as MediaFile[]);
       } catch {
 
         // Handle error silently
-      } finally {setLoading(false);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
+
     fetchData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, [personId, treeId]);
   const handleSave = async () => {
     setSaving(true);
@@ -124,6 +153,7 @@ export function PersonDetailPanel({
       });
       const res = await personService.getPerson(personId);
       if (res.success) setPerson(res.data);
+      showSuccessToast('Cập nhật thông tin thành công');
       setIsEditing(false);
       onRefresh();
     } catch {
@@ -133,15 +163,20 @@ export function PersonDetailPanel({
     }
   };
   const handleDelete = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa người này?')) return;
+    setDeleting(true);
     try {
       await personService.deletePerson(personId);
+      showSuccessToast('Xóa thành viên thành công');
+      setShowDeleteConfirm(false);
       onClose();
       onRefresh();
     } catch {
 
       // Handle error
-    }};
+    } finally {
+      setDeleting(false);
+    }
+  };
   const tabs: {
     id: Tab;
     label: string;
@@ -378,8 +413,9 @@ export function PersonDetailPanel({
                     Sửa
                   </button>
                   <button
-                onClick={handleDelete}
-                className="py-2.5 px-4 bg-red-50 text-red-600 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-1.5">
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={saving}
+                className="py-2.5 px-4 bg-red-50 text-red-600 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                 
                     <TrashIcon className="w-3.5 h-3.5" />
                   </button>
@@ -656,6 +692,18 @@ export function PersonDetailPanel({
           </div>
         }
       </div>
+
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title="Xóa người này?"
+        message="Bên dưới sẽ xóa tất cả thông tin về người này khỏi cây gia phả. Hành động này không thể được hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        isDangerous
+        isLoading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>);
 
 }

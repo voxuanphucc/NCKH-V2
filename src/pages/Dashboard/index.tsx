@@ -15,6 +15,8 @@ import {
   XIcon } from
 'lucide-react';
 import { treeService } from '../../services/treeService';
+import { showSuccessToast } from '../../utils/validation';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import type { Tree, CreateTreeRequest } from '../../types/tree';
 
 export function DashboardPage() {
@@ -28,6 +30,12 @@ export function DashboardPage() {
   const [newTreeName, setNewTreeName] = useState('');
   const [newTreeDesc, setNewTreeDesc] = useState('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingTreeId, setDeletingTreeId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [leavingTreeId, setLeavingTreeId] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
   const fetchTrees = async () => {
     setLoading(true);
     try {
@@ -58,6 +66,7 @@ export function DashboardPage() {
       };
       const res = await treeService.createTree(data);
       if (res.success) {
+        showSuccessToast('Tạo cây gia phả thành công');
         setTrees((prev) => [res.data, ...prev]);
         setShowCreateModal(false);
         setNewTreeName('');
@@ -70,24 +79,34 @@ export function DashboardPage() {
     }
   };
   const handleDeleteTree = async (treeId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa cây gia phả này?')) return;
+    setDeleting(true);
     try {
       await treeService.deleteTree(treeId);
+      showSuccessToast('Xóa cây gia phả thành công');
       setTrees((prev) => prev.filter((t) => t.id !== treeId));
+      setShowDeleteConfirm(false);
+      setDeletingTreeId(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Không thể xóa cây gia phả');
+    } finally {
+      setDeleting(false);
+      setMenuOpenId(null);
     }
-    setMenuOpenId(null);
   };
   const handleLeaveTree = async (treeId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn rời khỏi cây gia phả này?')) return;
+    setLeaving(true);
     try {
       await treeService.leaveTree(treeId);
+      showSuccessToast('Rời cây gia phả thành công');
       setTrees((prev) => prev.filter((t) => t.id !== treeId));
+      setShowLeaveConfirm(false);
+      setLeavingTreeId(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Không thể rời cây gia phả');
+    } finally {
+      setLeaving(false);
+      setMenuOpenId(null);
     }
-    setMenuOpenId(null);
   };
   const filteredTrees = trees.filter(
     (t) =>
@@ -265,7 +284,8 @@ export function DashboardPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDeleteTree(tree.id);
+                    setDeletingTreeId(tree.id);
+                    setShowDeleteConfirm(true);
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                   
@@ -276,7 +296,8 @@ export function DashboardPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLeaveTree(tree.id);
+                    setLeavingTreeId(tree.id);
+                    setShowLeaveConfirm(true);
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                   
@@ -386,6 +407,36 @@ export function DashboardPage() {
           </div>
         </div>
       }
+
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title="Xóa cây gia phả?"
+        message="Cây gia phả này và tất cả dữ liệu của nó sẽ bị xóa vĩnh viễn. Hành động này không thể được hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        isDangerous
+        isLoading={deleting}
+        onConfirm={() => deletingTreeId && handleDeleteTree(deletingTreeId)}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setDeletingTreeId(null);
+        }}
+      />
+
+      <ConfirmationModal
+        isOpen={showLeaveConfirm}
+        title="Rời khỏi cây gia phả?"
+        message="Bạn sẽ rời khỏi cây gia phả này và mất quyền truy cập vào nó. Bạn có thể được mời lại bởi một chủ sở hữu."
+        confirmText="Rời khỏi"
+        cancelText="Hủy"
+        isDangerous
+        isLoading={leaving}
+        onConfirm={() => leavingTreeId && handleLeaveTree(leavingTreeId)}
+        onCancel={() => {
+          setShowLeaveConfirm(false);
+          setLeavingTreeId(null);
+        }}
+      />
     </div>);
 
 }

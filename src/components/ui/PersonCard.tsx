@@ -1,5 +1,4 @@
-import React from 'react';
-import { UserIcon, HeartIcon, CalendarIcon } from 'lucide-react';
+import { HeartIcon, CalendarIcon } from 'lucide-react';
 import type { PersonGraph, Person } from '../../types/person';
 import { formatShortDate } from '../../utils/formatDate';
 import { getDefaultAvatar } from '../../utils/getDefaultAvatar';
