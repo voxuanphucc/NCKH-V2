@@ -104,38 +104,46 @@ export function FamilyTreeD3({
       const isSelected = selectedPersonId === person.id;
       const isDeceased = !!person.dateOfDeath;
       const isRoot = graph.meta.rootPersonId === person.id;
-      const bgColor = isSelected ? isDeceased ? 'bg-gray-50' : isMale ? 'bg-blue-50' : 'bg-pink-50' : 'bg-white';
-      const borderColor = isSelected 
-        ? isDeceased 
-          ? 'border-gray-400' 
-          : isMale 
-          ? 'border-blue-400' 
-          : 'border-pink-400'
-        : isDeceased
-        ? 'border-gray-300'
-        : isMale
-        ? 'border-blue-300'
-        : 'border-pink-300';
-      const shadow = isSelected ?
-        isDeceased
-        ? 'shadow-lg shadow-gray-400/20'
-        : isMale
-        ? 'shadow-lg shadow-blue-400/20'
-        : 'shadow-lg shadow-pink-400/20' :
-        'shadow-sm hover:shadow-md';
-      const opacity = isDeceased ? 'opacity-75' : 'opacity-100';
-      const ring = isRoot 
-        ? isDeceased 
-          ? 'ring-2 ring-gray-400/30' 
-          : isMale 
-          ? 'ring-2 ring-blue-400/30' 
-          : 'ring-2 ring-pink-400/30' 
-        : '';
+      
+      // Màu sắc cho viền
+      let borderColor = 'border-warm-300';
+      let bgColor = 'bg-white';
+      let shadow = 'shadow-sm hover:shadow-md';
+      
+      if (isDeceased) {
+        borderColor = 'border-gray-300';
+        bgColor = isRoot ? 'bg-yellow-50' : 'bg-white';
+      } else if (isMale) {
+        borderColor = 'border-blue-400';
+      } else {
+        borderColor = 'border-pink-400';
+      }
+      
+      // Highlight cho người được chọn
+      if (isSelected) {
+        bgColor = isDeceased ? 'bg-gray-50' : isMale ? 'bg-blue-50' : 'bg-pink-50';
+        borderColor = isDeceased ? 'border-gray-400' : isMale ? 'border-blue-500' : 'border-pink-500';
+        shadow = isDeceased
+          ? 'shadow-lg shadow-gray-400/20'
+          : isMale
+          ? 'shadow-lg shadow-blue-400/20'
+          : 'shadow-lg shadow-pink-400/20';
+      }
+      
+      // Highlight cho người gốc
+      if (isRoot && !isSelected) {
+        bgColor = 'bg-yellow-50';
+        shadow = 'shadow-md shadow-yellow-400/30 ring-2 ring-heritage-gold/40';
+      }
+      
+      const opacity = isDeceased && !isRoot ? 'opacity-75' : isDeceased ? 'opacity-85' : 'opacity-100';
+      
       const avatarBg = isDeceased
         ? 'bg-gray-100 text-gray-500'
         : isMale ?
         'bg-blue-50 text-blue-500' :
         'bg-pink-50 text-pink-500';
+      
       const genderText = isMale ? 'Nam' : 'Nữ';
       const birthYear = person.dateOfBirth ?
       new Date(person.dateOfBirth).getFullYear() :
@@ -147,8 +155,9 @@ export function FamilyTreeD3({
       `${birthYear}${deathYear ? ` - ${deathYear}` : ''}` :
       '';
       const avatarUrl = person.avatarUrl || getDefaultAvatar(person.gender, person.dateOfBirth);
+      
       return `
-        <div class="w-full h-full rounded-xl border-2 ${borderColor} ${bgColor} ${shadow} ${opacity} ${ring} p-2 flex items-center gap-2 cursor-pointer transition-all" 
+        <div class="w-full h-full rounded-xl border-2 ${borderColor} ${bgColor} ${shadow} ${opacity} p-2 flex items-center gap-2 cursor-pointer transition-all" 
              onclick="window.handlePersonClick('${person.id}')">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${avatarBg}">
             <img src="${avatarUrl}" class="w-10 h-10 rounded-lg object-cover" />
@@ -367,6 +376,80 @@ export function FamilyTreeD3({
           
           <MaximizeIcon className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Legend - Chú thích */}
+      <div className="absolute bottom-4 left-4 z-10 bg-white/95 backdrop-blur-sm rounded-xl border border-warm-200 shadow-lg p-3 max-w-xs">
+        <h3 className="text-xs font-bold text-warm-800 mb-2.5 uppercase tracking-wider">Chú thích</h3>
+        
+        {/* Đường nối */}
+        <div className="space-y-2">
+          {/* Con cái - Solid line */}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-5 relative flex items-center">
+              <svg className="w-full h-full" viewBox="0 0 40 10">
+                <path
+                  d="M2 5 L38 5"
+                  stroke="#C4A882"
+                  strokeWidth="2"
+                  fill="none"
+                />
+              </svg>
+            </div>
+            <span className="text-xs text-warm-700">Con cái</span>
+          </div>
+
+          {/* Vợ chồng - Dashed line */}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-5 relative flex items-center">
+              <svg className="w-full h-full" viewBox="0 0 40 10">
+                <path
+                  d="M2 5 L38 5"
+                  stroke="#C4A882"
+                  strokeWidth="2"
+                  strokeDasharray="4,3"
+                  fill="none"
+                />
+              </svg>
+            </div>
+            <span className="text-xs text-warm-700">Vợ chồng</span>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-warm-100 my-1.5" />
+
+          {/* Người gốc - Yellow background with golden ring */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-warm-400 bg-yellow-50 ring-2 ring-heritage-gold/40 flex items-center justify-center flex-shrink-0">
+              <span className="text-[9px] text-heritage-gold font-bold">⭐</span>
+            </div>
+            <span className="text-xs text-warm-700">Người gốc</span>
+          </div>
+
+          {/* Nam - Blue border */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-blue-400 bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <span className="text-[9px] text-blue-600 font-bold">♂</span>
+            </div>
+            <span className="text-xs text-warm-700">Nam</span>
+          </div>
+
+          {/* Nữ - Pink border */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-pink-400 bg-pink-50 flex items-center justify-center flex-shrink-0">
+              <span className="text-[9px] text-pink-600 font-bold">♀</span>
+            </div>
+            <span className="text-xs text-warm-700">Nữ</span>
+          </div>
+
+          {/* Đã chết - Gray border, mờ */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-gray-400 bg-gray-50 opacity-60 flex items-center justify-center flex-shrink-0">
+              <span className="text-[9px] text-gray-500 font-bold">†</span>
+            </div>
+            <span className="text-xs text-warm-700">Đã chết</span>
+          </div>
+        </div>
       </div>
 
       {/* Zoom level indicator */}

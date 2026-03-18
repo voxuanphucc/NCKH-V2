@@ -73,7 +73,9 @@ export function AddEventModal({
         }
       };
 
-      const res = await eventService.createEvent(treeId, eventData);
+      const res = mode === 'edit' && event
+        ? await eventService.updateEvent(treeId, event.id, eventData)
+        : await eventService.createEvent(treeId, eventData);
       if (res.success) {
         showSuccessToast(mode === 'create' ? 'Tạo sự kiện thành công' : 'Cập nhật sự kiện thành công');
         onSuccess(res.data);

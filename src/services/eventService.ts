@@ -50,5 +50,23 @@ export const eventService = {
   }),
 
   getPersonEvents: (treeId: string, personId: string) =>
-  request<TreeEvent[]>(`/trees/${treeId}/events/persons/${personId}`)
+  request<TreeEvent[]>(`/trees/${treeId}/events/persons/${personId}`),
+
+  updateEvent: (treeId: string, eventId: string, data: CreateEventRequest) => {
+    const nameError = validateField('event', 'name', data.event.name);
+    const startedAtError = validateField('event', 'startedAt', data.event.startedAt);
+    const endedAtError = validateField('event', 'endedAt', data.event.endedAt, data.event.startedAt);
+
+    const errors = [nameError, startedAtError, endedAtError].filter(Boolean);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => showErrorToast(error!));
+      return Promise.reject(new Error('Validation failed'));
+    }
+
+    return request<TreeEvent>(`/trees/${treeId}/events/${eventId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
 };

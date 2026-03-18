@@ -7,7 +7,7 @@ import {
   CalendarDaysIcon,
   MapPinIcon
 } from 'lucide-react';
-import { treeService } from '../../services/treeService';
+import { invitationService } from '../../services/invitationService';
 import { familyService } from '../../services/familyService';
 import { FamilyTreeD3 } from '../../components/ui/FamilyTreeD3';
 import { PersonCard } from '../../components/ui/PersonCard';
@@ -36,12 +36,12 @@ export function ShareTreeViewer() {
       try {
         setLoading(true);
         // Get shared tree data using token
-        const treeRes = await treeService.getSharedTree(shareToken);
+        const treeRes = await invitationService.viewSharedTree(shareToken);
         if (treeRes.success && treeRes.data) {
           setTree(treeRes.data);
           
           // Get family graph
-          const graphRes = await familyService.getGraph(treeRes.data.id);
+          const graphRes = await invitationService.viewSharedGraph(shareToken);
           if (graphRes.success && graphRes.data) {
             setGraph(graphRes.data);
           }
