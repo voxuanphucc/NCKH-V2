@@ -17,4 +17,8 @@ export const publicRoutes: RouteConfig[] = [
 {
   path: '/share',
   page: 'share'
+},
+{
+  path: '/oauth-callback',
+  page: 'oauth-callback'
 }];

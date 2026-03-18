@@ -1,5 +1,5 @@
 import { request } from '../config/axios';
-import type { Tree, CreateTreeRequest, TreeMember } from '../types/tree';
+import type { Tree, CreateTreeRequest, TreeMember, TreeGraph } from '../types/tree';
 import type { TreeRole } from '../types/common';
 import { validateField, showErrorToast } from '../utils/validation';
 
@@ -7,6 +7,8 @@ export const treeService = {
   getMyTrees: () => request<Tree[]>('/trees/my'),
 
   getTree: (treeId: string) => request<Tree>(`/trees/${treeId}`),
+
+  getGraph: (treeId: string) => request<TreeGraph>(`/trees/${treeId}/graph`),
 
   createTree: (data: CreateTreeRequest) => {
     const nameError = validateField('tree', 'name', data.name);

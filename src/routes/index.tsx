@@ -1,4 +1,3 @@
-import React from 'react';
 // App Router chính
 import { publicRoutes } from './publicRoutes';
 import { privateRoutes } from './privateRoutes';

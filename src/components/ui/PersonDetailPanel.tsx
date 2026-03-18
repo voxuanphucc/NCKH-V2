@@ -19,11 +19,12 @@ import { familyService } from '../../services/familyService';
 import { eventService } from '../../services/eventService';
 import { addressService } from '../../services/addressService';
 import { mediaService } from '../../services/mediaService';
-import { showSuccessToast } from '../../utils/validation';
+import { showSuccessToast, showErrorToast } from '../../utils/validation';
 import { getDefaultAvatar } from '../../utils/getDefaultAvatar';
 import { ConfirmationModal } from './ConfirmationModal';
+import { AddAddressModal } from './AddAddressModal';
 import type { Person } from '../../types/person';
-import type { FamilyInfo } from '../../types/family';
+import type { FamilyInfo, TreeGraph } from '../../types/family';
 import type { TreeEvent } from '../../types/event';
 import type { Address } from '../../types/address';
 import type { MediaFile } from '../../types/media';
@@ -32,6 +33,7 @@ import { formatDate } from '../../utils/formatDate';
 interface PersonDetailPanelProps {
   personId: string;
   treeId: string;
+  graph?: TreeGraph;
   onClose: () => void;
   onPersonClick: (personId: string) => void;
   onAddSpouse: (personId: string) => void;
@@ -43,6 +45,7 @@ type Tab = 'info' | 'family' | 'events' | 'addresses' | 'media';
 export function PersonDetailPanel({
   personId,
   treeId,
+  graph,
   onClose,
   onPersonClick,
   onAddSpouse,
@@ -67,6 +70,13 @@ export function PersonDetailPanel({
   const [editGender, setEditGender] = useState<Gender>('MALE');
   const [editDob, setEditDob] = useState('');
   const [editDod, setEditDod] = useState('');
+  // Address modal state
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressModalMode, setAddressModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedAddressToEdit, setSelectedAddressToEdit] = useState<Address | undefined>();
+  const [showDeleteAddressConfirm, setShowDeleteAddressConfirm] = useState(false);
+  const [deletingAddress, setDeletingAddress] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
   
   useEffect(() => {
     // Create an abort controller to cancel requests if component unmounts
@@ -79,7 +89,7 @@ export function PersonDetailPanel({
       
       setLoading(true);
       try {
-        const [personRes, familyRes, eventsRes, addressRes, mediaRes] =
+        const [personRes, familyRes, eventsRes, addressesRes, mediaRes] =
         await Promise.all([
         personService.getPerson(personId).catch(() => ({
           success: false,
@@ -121,9 +131,10 @@ export function PersonDetailPanel({
             ''
           );
         }
+        console.log('📖 FAMILY INFO:', familyRes);
         if (familyRes.success && familyRes.data) setFamilyInfo(familyRes.data);
         if (eventsRes.success) setEvents(eventsRes.data as TreeEvent[]);
-        if (addressRes.success) setAddresses(addressRes.data as Address[]);
+        if (addressesRes.success) setAddresses(addressesRes.data as Address[]);
         if (mediaRes.success) setMedia(mediaRes.data as MediaFile[]);
       } catch {
 
@@ -144,36 +155,162 @@ export function PersonDetailPanel({
   const handleSave = async () => {
     setSaving(true);
     try {
-      await personService.updatePerson(personId, {
+      const updateRes = await personService.updatePerson(personId, {
         firstName: editFirstName,
         lastName: editLastName,
         gender: editGender,
         dateOfBirth: editDob ? new Date(editDob).toISOString() : undefined,
         dateOfDeath: editDod ? new Date(editDod).toISOString() : undefined
       });
-      const res = await personService.getPerson(personId);
-      if (res.success) setPerson(res.data);
-      showSuccessToast('Cập nhật thông tin thành công');
-      setIsEditing(false);
-      onRefresh();
-    } catch {
-
-      // Handle error
-    } finally {setSaving(false);
+      if (updateRes.success) {
+        const res = await personService.getPerson(personId);
+        if (res.success) setPerson(res.data);
+        showSuccessToast('Cập nhật thông tin thành công');
+        setIsEditing(false);
+        onRefresh();
+      } else {
+        showErrorToast(updateRes.message || 'Cập nhật thất bại');
+      }
+    } catch (error) {
+      showErrorToast('Có lỗi khi cập nhật thông tin');
+      console.error('Update error:', error);
+    } finally {
+      setSaving(false);
     }
   };
+  const handleAddAddress = () => {
+    setAddressModalMode('create');
+    setSelectedAddressToEdit(undefined);
+    setShowAddressModal(true);
+  };
+
+  const handleEditAddress = (address: Address) => {
+    setAddressModalMode('edit');
+    setSelectedAddressToEdit(address);
+    setShowAddressModal(true);
+  };
+
+  const handleDeleteAddress = async (address: Address) => {
+    setAddressToDelete(address);
+    setShowDeleteAddressConfirm(true);
+  };
+
+  const handleConfirmDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    setDeletingAddress(true);
+    try {
+      const res = await addressService.deletePersonAddress(
+        treeId,
+        personId,
+        addressToDelete.id
+      );
+      if (res.success) {
+        showSuccessToast('Xóa địa chỉ thành công');
+        // Remove from local state
+        setAddresses(addresses.filter((a) => a.id !== addressToDelete.id));
+        setShowDeleteAddressConfirm(false);
+        setAddressToDelete(null);
+      } else {
+        showErrorToast(res.message || 'Xóa địa chỉ thất bại');
+      }
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      showErrorToast('Có lỗi khi xóa địa chỉ');
+    } finally {
+      setDeletingAddress(false);
+    }
+  };
+
+  const handleAddressSuccess = (address: Address) => {
+    if (addressModalMode === 'create') {
+      setAddresses([...addresses, address]);
+    } else {
+      setAddresses(
+        addresses.map((a) => (a.id === address.id ? address : a))
+      );
+    }
+  };
+
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await personService.deletePerson(personId);
-      showSuccessToast('Xóa thành viên thành công');
-      setShowDeleteConfirm(false);
-      onClose();
-      onRefresh();
-    } catch {
-
-      // Handle error
+      console.log('=== DELETE PERSON START ===');
+      console.log('Deleting person ID:', personId);
+      console.log('Person name:', person?.fullName);
+      
+      if (graph) {
+        console.log('🔍 Graph Analysis:');
+        console.log('  - Total families:', graph.families.length);
+        console.log('  - Total persons:', graph.persons.length);
+        console.log('  - Root person ID:', graph.meta?.rootPersonId);
+        console.log('  - Is this root person?', personId === graph.meta?.rootPersonId);
+        
+        // Step 1: Find and remove from families where person is child
+        console.log('\n📋 STEP 1: Removing person from family relationships (as child)...');
+        const familiesWithPersonAsChild = graph.families.filter(f => 
+          f.childrenIds.includes(personId)
+        );
+        console.log(`  Found ${familiesWithPersonAsChild.length} families where this person is a child:`);
+        familiesWithPersonAsChild.forEach(f => {
+          console.log(`    - Family ${f.id}: parent1=${f.parent1Id}, parent2=${f.parent2Id}, children=${f.childrenIds.join(',')}`);
+        });
+        
+        for (const family of familiesWithPersonAsChild) {
+          try {
+            console.log(`  🔄 Removing from family ${family.id}...`);
+            const res = await familyService.removeChild(treeId, family.id, personId);
+            console.log(`  ✅ Removed from family ${family.id}:`, res);
+          } catch (err) {
+            console.error(`  ❌ Failed to remove from family ${family.id}:`, err);
+          }
+        }
+        
+        // Step 2: Find and delete families where person is parent
+        console.log('\n📋 STEP 2: Deleting families where person is parent...');
+        const familiesWithPersonAsParent = graph.families.filter(f => 
+          f.parent1Id === personId || f.parent2Id === personId
+        );
+        console.log(`  Found ${familiesWithPersonAsParent.length} families where this person is a parent:`);
+        familiesWithPersonAsParent.forEach(f => {
+          console.log(`    - Family ${f.id}: parent1=${f.parent1Id}, parent2=${f.parent2Id}, children=${f.childrenIds.join(',')}`);
+        });
+        
+        for (const family of familiesWithPersonAsParent) {
+          try {
+            console.log(`  🔄 Deleting family ${family.id}...`);
+            const res = await familyService.deleteFamily(treeId, family.id);
+            console.log(`  ✅ Deleted family ${family.id}:`, res);
+          } catch (err) {
+            console.error(`  ❌ Failed to delete family ${family.id}:`, err);
+          }
+        }
+      } else {
+        console.warn('⚠️ No graph data available - skipping relationship cleanup');
+      }
+      
+      // Step 3: Delete person
+      console.log('\n📋 STEP 3: Deleting person...');
+      console.log(`  🔄 Calling DELETE /persons/${personId}...`);
+      const res = await personService.deletePerson(personId);
+      console.log('  Delete response:', res);
+      
+      if (res.success) {
+        console.log('✅ Delete successful! Refreshing tree...');
+        showSuccessToast('Xóa thành viên thành công');
+        setShowDeleteConfirm(false);
+        onClose();
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        onRefresh();
+      } else {
+        console.error('❌ Delete failed - API returned error:', res.message);
+        showErrorToast(res.message || 'Xóa thành viên thất bại');
+      }
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+      showErrorToast('Có lỗi khi xóa thành viên');
     } finally {
+      console.log('=== DELETE PERSON END ===\n');
       setDeleting(false);
     }
   };
@@ -425,8 +562,10 @@ export function PersonDetailPanel({
           </div>
         }
 
-        {activeTab === 'family' && familyInfo &&
+        {activeTab === 'family' &&
         <div className="space-y-6">
+          {familyInfo ? (
+            <>
             {/* Parents */}
             <div>
               <h4 className="text-xs font-semibold text-warm-400 uppercase tracking-wider mb-3">
@@ -575,7 +714,14 @@ export function PersonDetailPanel({
                 Thêm vợ/chồng
               </button>
             </div>
-          </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+            <UsersIcon className="w-10 h-10 mx-auto mb-3 text-warm-200" />
+            <p className="text-sm text-warm-400">Chưa có thông tin gia đình</p>
+            </div>
+          )}
+        </div>
         }
 
         {activeTab === 'events' &&
@@ -622,13 +768,20 @@ export function PersonDetailPanel({
           <div className="text-center py-8">
                 <MapPinIcon className="w-10 h-10 mx-auto mb-3 text-warm-200" />
                 <p className="text-sm text-warm-400">Chưa có địa chỉ nào</p>
+                <button
+              onClick={handleAddAddress}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-heritage-gold text-white text-sm font-medium rounded-lg hover:bg-heritage-gold/90 transition-colors">
+              
+                  <UserPlusIcon className="w-4 h-4" />
+                  Thêm địa chỉ
+                </button>
               </div> :
 
           <div className="space-y-3">
                 {addresses.map((addr) =>
             <div key={addr.id} className="p-4 bg-warm-50 rounded-xl">
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-warm-800">
                           {addr.formattedAddress ||
                     `${addr.addressLine}, ${addr.ward}, ${addr.district}, ${addr.city}`}
@@ -639,16 +792,41 @@ export function PersonDetailPanel({
                           </span>
                   }
                       </div>
-                      {addr.isPrimary &&
-                <span className="px-2 py-0.5 bg-heritage-gold/10 text-heritage-gold text-xs font-medium rounded-md">
-                          Chính
-                        </span>
-                }
+                      <div className="flex items-center gap-1.5">
+                        <button
+                      onClick={() => handleEditAddress(addr)}
+                      className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                      
+                          <PencilIcon className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                      onClick={() => handleDeleteAddress(addr)}
+                      className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                      
+                          <TrashIcon className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
+                    {addr.isPrimary &&
+              <div className="mt-2 flex items-center justify-end">
+                      <span className="px-2 py-0.5 bg-heritage-gold/10 text-heritage-gold text-xs font-medium rounded-md">
+                        Chính
+                      </span>
+                    </div>
+              }
                   </div>
             )}
               </div>
           }
+          {addresses.length > 0 &&
+        <button
+          onClick={handleAddAddress}
+          className="mt-4 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-warm-200 rounded-lg text-sm text-warm-400 hover:border-warm-300 hover:text-warm-500 transition-colors">
+          
+            <UserPlusIcon className="w-4 h-4" />
+            Thêm địa chỉ mới
+          </button>
+        }
           </div>
         }
 
@@ -703,6 +881,28 @@ export function PersonDetailPanel({
         isLoading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteAddressConfirm}
+        title="Xóa địa chỉ này?"
+        message={`${addressToDelete?.formattedAddress || 'Địa chỉ này'} sẽ bị xóa vĩnh viễn.`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        isDangerous
+        isLoading={deletingAddress}
+        onConfirm={handleConfirmDeleteAddress}
+        onCancel={() => setShowDeleteAddressConfirm(false)}
+      />
+
+      <AddAddressModal
+        isOpen={showAddressModal}
+        mode={addressModalMode}
+        address={selectedAddressToEdit}
+        treeId={treeId}
+        personId={personId}
+        onClose={() => setShowAddressModal(false)}
+        onSuccess={handleAddressSuccess}
       />
     </div>);
 

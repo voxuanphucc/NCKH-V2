@@ -9,6 +9,8 @@ import { validateField, showErrorToast } from '../utils/validation';
 export const userService = {
   getMe: () => request<User>('/users/me'),
 
+  getUser: (userId: string) => request<User>(`/users/${userId}`),
+
   updateMe: (data: UpdateUserRequest) => {
     const firstNameError =
       data.firstName && validateField('user', 'firstName', data.firstName);
@@ -50,11 +52,9 @@ export const userService = {
       return Promise.reject(new Error('Validation failed'));
     }
 
-    return request<string>('/users/me/password', {
+    return request<User>('/users/me/password', {
       method: 'PATCH',
       body: JSON.stringify(data)
     });
-  },
-
-  getUser: (id: string) => request<User>(`/users/${id}`)
+  }
 };

@@ -27,14 +27,24 @@ export function PersonCard({
       <button
         onClick={onClick}
         className={`
-          flex items-center gap-3 px-3 py-2 rounded-xl transition-all w-full text-left
-          ${isSelected ? 'bg-heritage-gold/10 ring-1 ring-heritage-gold/30' : 'hover:bg-warm-50'}
+          flex items-center gap-3 px-3 py-2 rounded-xl transition-all w-full text-left border-2
+          ${isSelected 
+            ? isDeceased
+              ? 'bg-gray-50 border-gray-400 ring-1 ring-gray-400/30'
+              : isMale
+              ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400/30'
+              : 'bg-pink-50 border-pink-400 ring-1 ring-pink-400/30'
+            : isDeceased
+            ? 'border-gray-200 hover:bg-gray-50'
+            : isMale
+            ? 'border-blue-200 hover:bg-blue-50'
+            : 'border-pink-200 hover:bg-pink-50'}
         `}>
         
         <div
           className={`
           w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-          ${isMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}
+          ${isDeceased ? 'bg-gray-100 text-gray-600' : isMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}
           ${isDeceased ? 'opacity-60' : ''}
         `}>
           
@@ -61,8 +71,19 @@ export function PersonCard({
       onClick={onClick}
       className={`
         relative bg-white rounded-2xl border-2 p-4 transition-all text-left w-full
-        ${isSelected ? 'border-heritage-gold shadow-lg shadow-heritage-gold/10' : 'border-warm-200/60 hover:border-warm-300 hover:shadow-md'}
-        ${isRoot ? 'ring-2 ring-heritage-gold/20' : ''}
+        ${isSelected 
+          ? isDeceased 
+            ? 'border-gray-400 shadow-lg shadow-gray-400/10' 
+            : isMale 
+            ? 'border-blue-400 shadow-lg shadow-blue-400/10' 
+            : 'border-pink-400 shadow-lg shadow-pink-400/10'
+          : isDeceased
+          ? 'border-gray-300 hover:border-gray-400 hover:shadow-md'
+          : isMale
+          ? 'border-blue-300 hover:border-blue-400 hover:shadow-md'
+          : 'border-pink-300 hover:border-pink-400 hover:shadow-md'
+        }
+        ${isRoot ? isDeceased ? 'ring-2 ring-gray-400/20' : isMale ? 'ring-2 ring-blue-400/20' : 'ring-2 ring-pink-400/20' : ''}
         ${isDeceased ? 'opacity-75' : ''}
       `}>
       
@@ -76,7 +97,11 @@ export function PersonCard({
         <div
           className={`
           w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-          ${isMale ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'}
+          ${isDeceased 
+            ? 'bg-gray-100 text-gray-500' 
+            : isMale 
+            ? 'bg-blue-50 text-blue-500' 
+            : 'bg-pink-50 text-pink-500'}
         `}>
           
           <img

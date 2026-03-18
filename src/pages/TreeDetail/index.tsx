@@ -3,14 +3,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   LoaderIcon,
+  UserIcon,
   UsersIcon,
   UserPlusIcon,
   PencilIcon,
   CalendarDaysIcon,
+  ImageIcon,
   SettingsIcon,
   XIcon,
   SaveIcon,
-  TreesIcon } from
+  TreesIcon,
+  TrashIcon,
+  LogOutIcon,
+  ChevronDownIcon,
+  MapPinIcon } from
 'lucide-react';
 import { treeService } from '../../services/treeService';
 import { familyService } from '../../services/familyService';
@@ -29,21 +35,27 @@ import { PersonDetailPanel } from '../../components/ui/PersonDetailPanel';
 import { AddPersonModal } from '../../components/ui/AddPersonModal';
 import type { PersonFormData } from '../../components/ui/AddPersonModal';
 import { MembersPanel } from '../../components/ui/MembersPanel';
+import { TreeAddressesPanel } from '../../components/ui/TreeAddressesPanel';
+import { AddEventModal } from '../../components/ui/AddEventModal';
+import { EventDetailPanel } from '../../components/ui/EventDetailPanel';
+import { TreeMediaGallery } from '../../components/ui/TreeMediaGallery';
+import { MediaUploadModal } from '../../components/ui/MediaUploadModal';
 
 export function TreeDetailPage() {
   const navigate = useNavigate();
   const { treeId } = useParams<{ treeId: string }>();
-
-  if (!treeId) {
-    return <div>Invalid tree ID</div>;
-  }
   const [tree, setTree] = useState<Tree | null>(null);
   const [graph, setGraph] = useState<TreeGraph | null>(null);
   const [events, setEvents] = useState<TreeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<TreeEvent | null>(null);
+  const [showTreeMedia, setShowTreeMedia] = useState(false);
+  const [showUploadTreeMedia, setShowUploadTreeMedia] = useState(false);
   // Add person modal state
   const [addPersonMode, setAddPersonMode] = useState<
     'first' | 'spouse' | 'parent' | 'child' | null>(
@@ -56,18 +68,49 @@ export function TreeDetailPage() {
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [savingTree, setSavingTree] = useState(false);
+  // Settings menu state
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [deletingTree, setDeletingTree] = useState(false);
+  const [leavingTree, setLeavingTree] = useState(false);
   
   const fetchData = useCallback(async () => {
+    if (!treeId) return;
+    console.log('TreeDetail: fetchData called (refetching tree graph...)');
     setLoading(true);
     try {
       const [treeRes, graphRes, eventsRes] = await Promise.all([
       treeService.getTree(treeId),
-      familyService.getGraph(treeId),
+      treeService.getGraph(treeId),
       eventService.getTreeEvents(treeId).catch(() => ({
         success: true,
         data: []
       }))]
       );
+      
+      if (graphRes.success && graphRes.data) {
+        console.log('🌳 GRAPH DATA:');
+        console.log(`  Total persons: ${graphRes.data.persons.length}`);
+        console.log(`  Total families: ${graphRes.data.families.length}`);
+        console.log(`  Root person ID: ${graphRes.data.meta?.rootPersonId}`);
+        console.log(`  Total generations: ${graphRes.data.meta?.totalGenerations}`);
+        
+        console.log('📋 PERSONS:');
+        graphRes.data.persons.forEach(p => {
+          console.log(`  - ${p.id}: ${p.fullName} (Gen: ${p.generation})`);
+        });
+        
+        console.log('👨‍👩‍👧 FAMILIES:');
+        graphRes.data.families.forEach(f => {
+          console.log(`  - Family ${f.id}:`);
+          console.log(`      Parent1: ${f.parent1Id}`);
+          console.log(`      Parent2: ${f.parent2Id}`);
+          console.log(`      Children: ${f.childrenIds.join(', ')}`);
+          console.log(`      Type: ${f.unionType}`);
+        });
+      }
+      
       if (treeRes.success) {
         setTree(treeRes.data);
         setEditName(treeRes.data.name);
@@ -75,14 +118,14 @@ export function TreeDetailPage() {
       }
       if (graphRes.success) setGraph(graphRes.data);
       if (eventsRes.success) setEvents(eventsRes.data as TreeEvent[]);
-    } catch {
-
-      // Handle error
+    } catch (error) {
+      console.error('TreeDetail: fetchData error:', error);
     } finally {setLoading(false);
     }
   }, [treeId]);
 
   useEffect(() => {
+    if (!treeId) return;
     fetchData();
   }, [treeId, fetchData]);
   const handleAddPerson = async (data: PersonFormData) => {
@@ -142,8 +185,6 @@ export function TreeDetailPage() {
       showSuccessToast('Thêm thành viên gia đình thành công');
       setAddPersonMode(null);
       fetchData();
-    } catch (err) {
-      throw err;
     } finally {
       setAddPersonLoading(false);
     }
@@ -181,6 +222,9 @@ export function TreeDetailPage() {
       </div>);
 
   }
+  if (!treeId) {
+    return <div>Invalid tree ID</div>;
+  }
   if (!tree) {
     return (
       <div className="text-center py-20">
@@ -199,6 +243,60 @@ export function TreeDetailPage() {
   tree.myRole === 'OWNER' ||
   tree.myRole === 'ADMIN' ||
   tree.myRole === 'EDITOR';
+  
+  const canDelete = tree.myRole === 'OWNER';
+  
+  const handleDeleteTree = async () => {
+    setDeletingTree(true);
+    try {
+      // Debug logging
+      console.log('=== DELETE TREE DEBUG ===');
+      console.log('Tree ID:', treeId);
+      console.log('Tree Name:', tree.name);
+      console.log('User Role:', tree.myRole);
+      console.log('Can Delete:', canDelete);
+      console.log('API URL:', `${import.meta.env.VITE_API_URL}/trees/${treeId}`);
+      
+      const res = await treeService.deleteTree(treeId);
+      
+      console.log('Delete Response:', res);
+      
+      if (res.success) {
+        showSuccessToast('Xóa cây gia phả thành công');
+        navigate('/dashboard');
+      } else {
+        console.warn('Delete returned success=false:', res.message);
+        showErrorToast(res.message || 'Không thể xóa cây gia phả');
+      }
+    } catch (error) {
+      console.error('=== DELETE TREE ERROR ===');
+      console.error('Error object:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      console.error('========================');
+    } finally {
+      setDeletingTree(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+  
+  const handleLeaveTree = async () => {
+    setLeavingTree(true);
+    try {
+      const res = await treeService.leaveTree(treeId);
+      if (res.success) {
+        showSuccessToast('Rời khỏi cây gia phả thành công');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Leave tree error:', error);
+    } finally {
+      setLeavingTree(false);
+      setShowLeaveConfirm(false);
+    }
+  };
   return (
     <div className="h-[calc(100vh-7rem)] flex flex-col">
       {/* Header */}
@@ -252,10 +350,27 @@ export function TreeDetailPage() {
               }
               </div>
             }
-            <p className="text-sm text-warm-400 mt-0.5">
-              {tree.totalPersons} người · {tree.totalMembers} thành viên
-              {tree.description && ` · ${tree.description}`}
-            </p>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-3 text-sm text-warm-500">
+                <span className="flex items-center gap-1.5">
+                  <UserIcon className="w-4 h-4 text-blue-500" />
+                  <span className="font-medium">{tree.totalPersons} người</span>
+                  <span className="text-xs text-warm-400">(trong cây gia phả)</span>
+                </span>
+                <span>·</span>
+                <span className="flex items-center gap-1.5">
+                  <UsersIcon className="w-4 h-4 text-purple-500" />
+                  <span className="font-medium">{tree.totalMembers} thành viên</span>
+                  <span className="text-xs text-warm-400">(người được mời xem cây)</span>
+                </span>
+              </div>
+              {tree.description && (
+                <div className="flex items-start gap-2 text-sm text-warm-500">
+                  <span className="text-xs text-warm-400 font-medium mt-0.5">📝 Mô tả:</span>
+                  <span className="text-warm-600 italic">{tree.description}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -283,8 +398,126 @@ export function TreeDetailPage() {
             
             <UsersIcon className="w-4 h-4" />
           </button>
+          <button
+            onClick={() => setShowAddresses(true)}
+            className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
+            title="Địa chỉ">
+            
+            <MapPinIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowTreeMedia(true)}
+            className={`p-2.5 rounded-xl border transition-colors ${showTreeMedia ? 'bg-heritage-gold/10 border-heritage-gold/30 text-heritage-gold' : 'border-warm-200 text-warm-500 hover:bg-warm-50'}`}
+            title="Media">
+            
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          
+          {/* Settings Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+              className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
+              title="Cài đặt">
+              
+              <SettingsIcon className="w-4 h-4" />
+            </button>
+            
+            {showSettingsMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-warm-200 shadow-lg z-50">
+                <div className="py-2">
+                  {/* Leave Tree */}
+                  <button
+                    onClick={() => {
+                      setShowLeaveConfirm(true);
+                      setShowSettingsMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-warm-600 hover:bg-warm-50 transition-colors">
+                    
+                    <LogOutIcon className="w-4 h-4" />
+                    Rời khỏi cây
+                  </button>
+                  
+                  {/* Delete Tree - OWNER only */}
+                  {canDelete && (
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(true);
+                        setShowSettingsMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-warm-100">
+                      
+                      <TrashIcon className="w-4 h-4" />
+                      Xóa cây
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+      
+      {/* Confirmation Modals */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md shadow-xl">
+            <h3 className="text-lg font-bold text-warm-800 mb-2">Xóa cây gia phả?</h3>
+            <p className="text-sm text-warm-600 mb-6">
+              Hành động này sẽ xóa toàn bộ cây gia phả và tất cả dữ liệu của nó. Điều này không thể hoàn tác.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2.5 bg-warm-100 text-warm-700 rounded-xl font-medium hover:bg-warm-200 transition-colors">
+                Hủy
+              </button>
+              <button
+                onClick={handleDeleteTree}
+                disabled={deletingTree}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                
+                {deletingTree ? (
+                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <TrashIcon className="w-4 h-4" />
+                )}
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md shadow-xl">
+            <h3 className="text-lg font-bold text-warm-800 mb-2">Rời khỏi cây gia phả?</h3>
+            <p className="text-sm text-warm-600 mb-6">
+              Bạn sẽ không còn có quyền truy cập vào cây gia phả này. Bạn có thể được mời lại sau.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="flex-1 px-4 py-2.5 bg-warm-100 text-warm-700 rounded-xl font-medium hover:bg-warm-200 transition-colors">
+                Hủy
+              </button>
+              <button
+                onClick={handleLeaveTree}
+                disabled={leavingTree}
+                className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                
+                {leavingTree ? (
+                  <LoaderIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <LogOutIcon className="w-4 h-4" />
+                )}
+                Rời
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content area */}
       <div className="flex-1 flex gap-4 min-h-0">
@@ -310,9 +543,20 @@ export function TreeDetailPage() {
         {showEvents &&
         <div className="w-80 bg-white rounded-2xl border border-warm-200/60 overflow-hidden flex flex-col animate-slide-in-right flex-shrink-0">
             <div className="flex items-center justify-between p-4 border-b border-warm-100">
-              <h3 className="font-heading text-base font-semibold text-warm-800">
-                Sự kiện
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-heading text-base font-semibold text-warm-800">
+                  Sự kiện
+                </h3>
+                {canEdit && (
+                  <button
+                    onClick={() => setShowAddEventModal(true)}
+                    className="px-2 py-1 rounded-lg text-xs font-medium bg-heritage-gold/10 text-heritage-gold hover:bg-heritage-gold/20 transition-colors"
+                    title="Tạo sự kiện"
+                  >
+                    + Tạo
+                  </button>
+                )}
+              </div>
               <button
               onClick={() => setShowEvents(false)}
               className="p-1 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors">
@@ -329,7 +573,11 @@ export function TreeDetailPage() {
 
             <div className="space-y-3">
                   {events.map((event) =>
-              <div key={event.id} className="p-3 bg-warm-50 rounded-xl">
+              <button
+                key={event.id}
+                type="button"
+                onClick={() => setSelectedEvent(event)}
+                className="w-full text-left p-3 bg-warm-50 rounded-xl hover:bg-warm-100 transition-colors">
                       <h4 className="text-sm font-semibold text-warm-800">
                         {event.name}
                       </h4>
@@ -364,7 +612,7 @@ export function TreeDetailPage() {
                   }
                         </div>
                 }
-                    </div>
+                    </button>
               )}
                 </div>
             }
@@ -378,6 +626,7 @@ export function TreeDetailPage() {
       <PersonDetailPanel
         personId={selectedPersonId}
         treeId={treeId}
+        graph={graph || undefined}
         onClose={() => setSelectedPersonId(null)}
         onPersonClick={(id) => setSelectedPersonId(id)}
         onAddSpouse={(id) => {
@@ -404,6 +653,63 @@ export function TreeDetailPage() {
         onClose={() => setShowMembers(false)} />
 
       }
+
+      {/* Tree Addresses panel */}
+      {showAddresses &&
+      <TreeAddressesPanel
+        treeId={treeId}
+        onClose={() => setShowAddresses(false)} />
+
+      }
+
+      {/* Tree media gallery */}
+      {showTreeMedia && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[980px] bg-white shadow-2xl border-l border-warm-200 animate-slide-in-right">
+          <div className="h-full p-6">
+            <TreeMediaGallery
+              treeId={treeId}
+              title="Media của cây"
+              onClose={() => setShowTreeMedia(false)}
+              onUploadClick={() => setShowUploadTreeMedia(true)}
+            />
+          </div>
+        </div>
+      )}
+
+      <MediaUploadModal
+        isOpen={showUploadTreeMedia}
+        treeId={treeId}
+        onClose={() => setShowUploadTreeMedia(false)}
+        onSuccess={() => {
+          // Gallery tự fetch khi cần
+        }}
+      />
+
+      {/* Add event modal */}
+      <AddEventModal
+        isOpen={showAddEventModal}
+        treeId={treeId}
+        mode="create"
+        onClose={() => setShowAddEventModal(false)}
+        onSuccess={(evt) => {
+          setEvents((prev) => [evt, ...prev]);
+          setShowAddEventModal(false);
+        }}
+      />
+
+      {/* Event detail panel */}
+      {selectedEvent && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[520px] bg-white shadow-2xl border-l border-warm-200 animate-slide-in-right">
+          <div className="h-full p-6">
+            <EventDetailPanel
+              treeId={treeId}
+              event={selectedEvent}
+              onClose={() => setSelectedEvent(null)}
+              onRefresh={fetchData}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Add person modal */}
       {addPersonMode &&

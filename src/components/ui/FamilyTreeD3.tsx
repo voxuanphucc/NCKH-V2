@@ -49,7 +49,7 @@ export function FamilyTreeD3({
     const treeLayout = d3.
     tree<TreeNode>().
     nodeSize([NODE_WIDTH * 2.5, NODE_HEIGHT * 2.5]).
-    separation((a, b) => {
+    separation((a: any, b: any) => {
       // Add more horizontal space if nodes have spouses
       const aHasSpouse = !!a.data.spouse;
       const bHasSpouse = !!b.data.spouse;
@@ -64,7 +64,7 @@ export function FamilyTreeD3({
     const zoom = d3.
     zoom<SVGSVGElement, unknown>().
     scaleExtent([0.1, 3]).
-    on('zoom', (event) => {
+    on('zoom', (event: any) => {
       g.attr('transform', event.transform);
       setZoomLevel(Math.round(event.transform.k * 100));
     });
@@ -84,7 +84,7 @@ export function FamilyTreeD3({
     attr('fill', 'none').
     attr('stroke', '#C4A882') // warm-300
     .attr('stroke-width', 2).
-    attr('d', (d) => {
+    attr('d', (d: any) => {
       // If parent has a spouse, the line should start from the middle of the couple
       const sourceX = d.source.data.spouse ?
       d.source.x + (NODE_WIDTH + SPOUSE_GAP) / 2 :
@@ -103,23 +103,43 @@ export function FamilyTreeD3({
     attr('class', 'node').
     attr('transform', (d) => `translate(${d.x},${d.y})`);
     // Helper to render a person card inside foreignObject
-    const renderPersonHtml = (person: PersonGraph, isSpouse = false) => {
+    const renderPersonHtml = (person: PersonGraph) => {
       const isMale = person.gender === 'MALE';
       const isSelected = selectedPersonId === person.id;
       const isDeceased = !!person.dateOfDeath;
       const isRoot = graph.meta.rootPersonId === person.id;
-      const bgColor = isSelected ? 'bg-heritage-gold/10' : 'bg-white';
-      const borderColor = isSelected ?
-      'border-heritage-gold' :
-      'border-warm-200';
+      const bgColor = isSelected ? isDeceased ? 'bg-gray-50' : isMale ? 'bg-blue-50' : 'bg-pink-50' : 'bg-white';
+      const borderColor = isSelected 
+        ? isDeceased 
+          ? 'border-gray-400' 
+          : isMale 
+          ? 'border-blue-400' 
+          : 'border-pink-400'
+        : isDeceased
+        ? 'border-gray-300'
+        : isMale
+        ? 'border-blue-300'
+        : 'border-pink-300';
       const shadow = isSelected ?
-      'shadow-lg shadow-heritage-gold/20' :
-      'shadow-sm hover:shadow-md';
+        isDeceased
+        ? 'shadow-lg shadow-gray-400/20'
+        : isMale
+        ? 'shadow-lg shadow-blue-400/20'
+        : 'shadow-lg shadow-pink-400/20' :
+        'shadow-sm hover:shadow-md';
       const opacity = isDeceased ? 'opacity-75' : 'opacity-100';
-      const ring = isRoot ? 'ring-2 ring-heritage-gold/30' : '';
-      const avatarBg = isMale ?
-      'bg-blue-50 text-blue-500' :
-      'bg-pink-50 text-pink-500';
+      const ring = isRoot 
+        ? isDeceased 
+          ? 'ring-2 ring-gray-400/30' 
+          : isMale 
+          ? 'ring-2 ring-blue-400/30' 
+          : 'ring-2 ring-pink-400/30' 
+        : '';
+      const avatarBg = isDeceased
+        ? 'bg-gray-100 text-gray-500'
+        : isMale ?
+        'bg-blue-50 text-blue-500' :
+        'bg-pink-50 text-pink-500';
       const genderText = isMale ? 'Nam' : 'Nữ';
       const birthYear = person.dateOfBirth ?
       new Date(person.dateOfBirth).getFullYear() :
@@ -189,7 +209,7 @@ export function FamilyTreeD3({
     attr('y', 0).
     attr('width', NODE_WIDTH).
     attr('height', NODE_HEIGHT).
-    html((d) => renderPersonHtml(d.data.spouse!, true));
+    html((d: any) => renderPersonHtml(d.data.spouse!));
     // 6. Center the tree initially
     const bounds = g.node()?.getBBox();
     if (bounds) {

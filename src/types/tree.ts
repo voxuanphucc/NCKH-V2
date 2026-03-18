@@ -1,4 +1,5 @@
 import type { TreeRole, MemberStatus } from './common';
+import type { Person } from './person';
 
 export interface Tree {
   id: string;
@@ -25,4 +26,10 @@ export interface TreeMember {
   role: TreeRole;
   status: MemberStatus;
   joinedAt: string;
+}
+
+export interface TreeGraph {
+  persons: Person[];
+  families?: any[];
+  meta?: any;
 }

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   TreesIcon,
   UserIcon,
+  UsersIcon,
   LogOutIcon,
   MenuIcon,
   HomeIcon,
@@ -33,6 +34,12 @@ export function Layout({ children }: LayoutProps) {
       label: 'Cây gia phả',
       icon: TreesIcon,
       href: '/dashboard'
+    },
+    {
+      id: 'persons',
+      label: 'Danh bạ person',
+      icon: UsersIcon,
+      href: '/persons'
     },
     {
       id: 'profile',

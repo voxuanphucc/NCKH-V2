@@ -322,11 +322,11 @@ export function DashboardPage() {
                   {tree.description || 'Chưa có mô tả'}
                 </p>
                 <div className="flex items-center gap-4 text-xs text-warm-400">
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 cursor-help" title="Số người trong cây gia phả của bạn">
                     <UserIcon className="w-3.5 h-3.5" />
                     {tree.totalPersons} người
                   </span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 cursor-help" title="Số người được bạn mời xem cây này">
                     <UsersIcon className="w-3.5 h-3.5" />
                     {tree.totalMembers} thành viên
                   </span>

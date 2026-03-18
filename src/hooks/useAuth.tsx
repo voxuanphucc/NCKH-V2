@@ -17,14 +17,17 @@ interface AuthContextType {
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
+function missingProvider(): never {
+  throw new Error('AuthProvider chưa được mount');
+}
 const AuthContext = createContext<AuthContextType>({
   user: null,
   authData: null,
   isAuthenticated: false,
   isLoading: true,
-  login: () => {},
-  logout: () => {},
-  refreshUser: async () => {}
+  login: () => missingProvider(),
+  logout: () => missingProvider(),
+  refreshUser: async () => missingProvider()
 });
 export function AuthProvider({ children }: {children: React.ReactNode;}) {
   const [user, setUser] = useState<User | null>(null);

@@ -43,7 +43,8 @@ options: RequestInit = {})
     } else if (response.status === 403) {
       showErrorToast('Bạn không có quyền để thực hiện hành động này');
     } else if (response.status === 404) {
-      showErrorToast('Tài nguyên không được tìm thấy');
+      // Silently handle 404 errors (optional endpoints may not be implemented yet)
+      // showErrorToast('Tài nguyên không được tìm thấy');
     } else if (response.status === 409) {
       showErrorToast('Xung đột dữ liệu: ' + message);
     } else if (response.status >= 500) {

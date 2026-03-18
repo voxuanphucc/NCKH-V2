@@ -7,8 +7,7 @@ import {
   LoaderIcon,
   LockIcon,
   EyeIcon,
-  EyeOffIcon,
-  CheckCircleIcon } from
+  EyeOffIcon } from
 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
@@ -238,12 +237,12 @@ export function ProfilePage() {
               {pwError}
             </div>
         }
-          {pwSuccess &&
-        <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center gap-2">
-              <CheckCircleIcon className="w-4 h-4" />
-              {pwSuccess}
-            </div>
-        }   <div className="relative">
+
+          <div>
+            <label className="block text-sm font-medium text-warm-700 mb-1.5">
+              Mật khẩu hiện tại
+            </label>
+            <div className="relative">
               <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400" />
               <input
               type={showOld ? 'text' : 'password'}

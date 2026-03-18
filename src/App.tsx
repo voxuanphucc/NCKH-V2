@@ -8,6 +8,10 @@ import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
 import { TreeDetailPage } from './pages/TreeDetail';
 import { ProfilePage } from './pages/Profile';
+import { ShareTreeViewer } from './pages/ShareTreeViewer';
+import { AcceptInvitationPage } from './pages/AcceptInvitation';
+import { PersonsDirectoryPage } from './pages/PersonsDirectory';
+import { AdminUserViewerPage } from './pages/AdminUserViewer';
 import { Layout } from './components/layout/Layout';
 
 function AppContent() {
@@ -19,6 +23,8 @@ function AppContent() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<LoginPage />} />
+      <Route path="/share" element={<ShareTreeViewer />} />
+      <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
 
       {/* Protected Routes */}
       <Route
@@ -47,6 +53,26 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <ProfilePage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/persons"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PersonsDirectoryPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AdminUserViewerPage />
             </Layout>
           </ProtectedRoute>
         }

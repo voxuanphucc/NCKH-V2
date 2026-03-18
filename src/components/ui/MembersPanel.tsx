@@ -17,6 +17,7 @@ import { treeService } from '../../services/treeService';
 import { invitationService } from '../../services/invitationService';
 import { showSuccessToast } from '../../utils/validation';
 import { ConfirmationModal } from './ConfirmationModal';
+import { ViewUserInfoPanel } from './ViewUserInfoPanel';
 import type { TreeMember } from '../../types/tree';
 import type { ShareLink } from '../../types/invitation';
 import type { TreeRole } from '../../types/common';
@@ -40,6 +41,7 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
   useEffect(() => {
     const fetchData = async () => {
@@ -103,6 +105,19 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
     showSuccessToast('Đã sao chép link vào clipboard');
     setCopiedId(link.id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn thu hồi link chia sẻ này không?')) return;
+    try {
+      const res = await invitationService.deleteShareLink(treeId, linkId);
+      if (res.success) {
+        showSuccessToast('Thu hồi link chia sẻ thành công');
+        setShareLinks((prev) => prev.filter((l) => l.id !== linkId));
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Thu hồi link thất bại');
+    }
   };
   const handleRemoveMember = async (userId: string) => {
     setDeleting(true);
@@ -257,6 +272,13 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
                         <option value="ADMIN">Quản trị</option>
                       </select>
                       <button
+                  onClick={() => setSelectedUserId(member.userId)}
+                  className="p-1.5 rounded-lg text-warm-400 hover:text-heritage-gold hover:bg-warm-50 transition-colors"
+                  title="Xem thông tin">
+                  
+                        <UsersIcon className="w-3.5 h-3.5" />
+                      </button>
+                      <button
                   onClick={() => {
                     setDeletingUserId(member.userId);
                     setShowDeleteConfirm(true);
@@ -347,14 +369,20 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
                         {link.shareUrl}
                       </p>
                       <button
-                    onClick={() => handleCopyLink(link)}
-                    className="p-1.5 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors flex-shrink-0">
-                    
-                        {copiedId === link.id ?
-                    <CheckIcon className="w-4 h-4 text-green-500" /> :
-
-                    <CopyIcon className="w-4 h-4" />
-                    }
+                        onClick={() => handleCopyLink(link)}
+                        className="p-1.5 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors flex-shrink-0"
+                        title="Sao chép link">
+                        {copiedId === link.id ? (
+                          <CheckIcon className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <CopyIcon className="w-4 h-4" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLink(link.id)}
+                        className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors flex-shrink-0"
+                        title="Thu hồi link">
+                        <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
                     {link.expiresAt &&
@@ -391,7 +419,14 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
             setDeletingUserId(null);
           }}
         />
-      </div>
-    </div>);
 
+        {selectedUserId && (
+          <ViewUserInfoPanel
+            userId={selectedUserId}
+            onClose={() => setSelectedUserId(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
