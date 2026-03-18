@@ -1,6 +1,9 @@
 import type { UnionType } from './common';
 import type { Person, PersonGraph } from './person';
 
+// Re-export for convenience
+export type { PersonGraph } from './person';
+
 export interface Family {
   id: string;
   parent1: Person;

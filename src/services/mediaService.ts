@@ -71,5 +71,10 @@ export const mediaService = {
       `/trees/${treeId}/persons/${personId}/media?${params}`,
       { method: 'POST', body: formData }
     );
-  }
+  },
+
+  deletePersonMedia: (treeId: string, personId: string, mediaFileId: string) =>
+  request<string>(`/trees/${treeId}/persons/${personId}/media/${mediaFileId}`, {
+    method: 'DELETE'
+  })
 };

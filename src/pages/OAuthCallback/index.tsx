@@ -12,7 +12,8 @@ export function OAuthCallbackPage() {
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
-        // Get the token from URL query parameters
+        // Get token from URL query parameters
+        // Backend returns: ?token=jwt_token hoặc ?access_token=jwt_token
         const token = searchParams.get('token');
         const accessToken = searchParams.get('access_token');
         const finalToken = token || accessToken;
@@ -23,15 +24,25 @@ export function OAuthCallbackPage() {
           return;
         }
 
+        // Validate token format (should be JWT)
+        if (!finalToken.includes('.')) {
+          showErrorToast('Token không hợp lệ');
+          navigate('/login');
+          return;
+        }
+
         // Store the token in localStorage
         localStorage.setItem('accessToken', finalToken);
 
-        // Parse the token to get user info if JWT (optional)
-        // The login() function will call getMe() API to get full user info
+        // The login() function will call getMe() API to fetch full user info
         try {
           await login({ accessToken: finalToken, tokenType: 'Bearer' } as any);
+          // Redirect to dashboard after successful login
           navigate('/dashboard');
         } catch (err) {
+          console.error('Error fetching user info:', err);
+          // Clear token if user fetch fails
+          localStorage.removeItem('accessToken');
           showErrorToast('Không thể tải thông tin người dùng');
           navigate('/login');
         }

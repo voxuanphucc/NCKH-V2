@@ -29,7 +29,7 @@ export function PersonMediaGallery({
   const [media, setMedia] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'IMAGE' | 'VIDEO' | 'DOCUMENT'>('all');
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function PersonMediaGallery({
 
     try {
       setDeleting(mediaId);
-      const res = await mediaService.deleteTreeMedia(treeId, mediaId);
+      const res = await mediaService.deletePersonMedia(treeId, personId, mediaId);
       if (res.success) {
         showSuccessToast('Xóa tệp thành công');
         setMedia(media.filter(m => m.id !== mediaId));
@@ -75,7 +75,7 @@ export function PersonMediaGallery({
   };
 
   const filteredMedia = media.filter(m => 
-    filterType === 'all' || m.mediaType === filterType
+    filterType === 'all' || m.mediaFileType === filterType
   );
 
   const getMediaIcon = (type: string) => {
@@ -91,20 +91,20 @@ export function PersonMediaGallery({
     }
   };
 
-  const getMediaPreview = (mediaItem: Media) => {
-    if (mediaItem.mediaType === 'IMAGE') {
+  const getMediaPreview = (mediaItem: MediaFile) => {
+    if (mediaItem.mediaFileType === 'IMAGE') {
       return (
         <img
-          src={mediaItem.mediaUrl}
+          src={mediaItem.fileUrl}
           alt={mediaItem.description || 'Media'}
           className="w-full h-full object-cover"
         />
       );
-    } else if (mediaItem.mediaType === 'VIDEO') {
+    } else if (mediaItem.mediaFileType === 'VIDEO') {
       return (
         <div className="relative w-full h-full bg-warm-100 flex items-center justify-center">
           <video
-            src={mediaItem.mediaUrl}
+            src={mediaItem.fileUrl}
             className="max-w-full max-h-full object-cover"
             controls
           />
@@ -152,7 +152,7 @@ export function PersonMediaGallery({
                   ? 'bg-heritage-gold text-white'
                   : 'bg-warm-100 text-warm-700 hover:bg-warm-200'
               }`}>
-              {labels[type]} ({media.filter(m => type === 'all' || m.mediaType === type).length})
+              {labels[type]} ({media.filter(m => type === 'all' || m.mediaFileType === type).length})
             </button>
           );
         })}

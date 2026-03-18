@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef, useId } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { ZoomInIcon, ZoomOutIcon, MaximizeIcon, UserIcon } from 'lucide-react';
 import { getDefaultAvatar } from '../../utils/getDefaultAvatar';
-import type { TreeGraph, PersonGraph, FamilyGraph } from '../../types/family';
+import type { TreeGraph, FamilyGraph } from '../../types/family';
+import type { PersonGraph } from '../../types/person';
 interface FamilyTreeD3Props {
   graph: TreeGraph;
   onPersonClick: (personId: string) => void;
@@ -49,7 +50,7 @@ export function FamilyTreeD3({
     const treeLayout = d3.
     tree<TreeNode>().
     nodeSize([NODE_WIDTH * 2.5, NODE_HEIGHT * 2.5]).
-    separation((a: any, b: any) => {
+    separation((a: any, b: any): number => {
       // Add more horizontal space if nodes have spouses
       const aHasSpouse = !!a.data.spouse;
       const bHasSpouse = !!b.data.spouse;
@@ -70,11 +71,6 @@ export function FamilyTreeD3({
     });
     svg.call(zoom);
     zoomBehaviorRef.current = zoom;
-    // 4. Draw Links (Paths)
-    const linkGenerator = d3.
-    linkVertical<any, any>().
-    x((d) => d.x).
-    y((d) => d.y);
     // Draw parent-child links
     g.selectAll('.link').
     data(root.links()).
@@ -84,7 +80,7 @@ export function FamilyTreeD3({
     attr('fill', 'none').
     attr('stroke', '#C4A882') // warm-300
     .attr('stroke-width', 2).
-    attr('d', (d: any) => {
+    attr('d', (d: any): string => {
       // If parent has a spouse, the line should start from the middle of the couple
       const sourceX = d.source.data.spouse ?
       d.source.x + (NODE_WIDTH + SPOUSE_GAP) / 2 :
@@ -101,7 +97,7 @@ export function FamilyTreeD3({
     enter().
     append('g').
     attr('class', 'node').
-    attr('transform', (d) => `translate(${d.x},${d.y})`);
+    attr('transform', (d: any) => `translate(${d.x},${d.y})`);
     // Helper to render a person card inside foreignObject
     const renderPersonHtml = (person: PersonGraph) => {
       const isMale = person.gender === 'MALE';
@@ -209,7 +205,7 @@ export function FamilyTreeD3({
     attr('y', 0).
     attr('width', NODE_WIDTH).
     attr('height', NODE_HEIGHT).
-    html((d: any) => renderPersonHtml(d.data.spouse!));
+    html((d: any): string => renderPersonHtml(d.data.spouse!));
     // 6. Center the tree initially
     const bounds = g.node()?.getBBox();
     if (bounds) {
