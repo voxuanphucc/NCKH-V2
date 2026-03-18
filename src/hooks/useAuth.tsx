@@ -51,7 +51,7 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('auth_data', JSON.stringify(data));
       setAuthData(data);
-      refreshUser();
+      return refreshUser();  // Return promise để có thể await
     },
     [refreshUser]
   );

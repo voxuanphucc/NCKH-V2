@@ -37,7 +37,7 @@ export function LoginPage() {
       });
       if (res.success) {
         showSuccessToast('Đăng nhập thành công');
-        login(res.data);
+        await login(res.data);  // Wait for user data to be fetched
         navigate('/dashboard');
       } else {
         setError(res.message || 'Đăng nhập thất bại');
@@ -73,7 +73,7 @@ export function LoginPage() {
       });
       if (res.success) {
         showSuccessToast('Đăng ký thành công');
-        login(res.data);
+        await login(res.data);  // Wait for user data to be fetched
         navigate('/dashboard');
       } else {
         setError(res.message || 'Đăng ký thất bại');
