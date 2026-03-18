@@ -24,7 +24,6 @@ export function ProfilePage() {
   const [gender, setGender] = useState<Gender>(user?.gender || 'MALE');
   const [dob, setDob] = useState(user?.dateOfBirth || '');
   const [saving, setSaving] = useState(false);
-  const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
   // Password form
   const [oldPassword, setOldPassword] = useState('');
@@ -33,13 +32,11 @@ export function ProfilePage() {
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
-  const [pwSuccess, setPwSuccess] = useState('');
   const [pwError, setPwError] = useState('');
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setProfileError('');
-    setProfileSuccess('');
     try {
       await userService.updateMe({
         firstName,
@@ -51,7 +48,6 @@ export function ProfilePage() {
       });
       await refreshUser();
       showSuccessToast('Cập nhật thông tin thành công!');
-      setProfileSuccess('Cập nhật thông tin thành công!');
     } catch (err: unknown) {
       setProfileError(err instanceof Error ? err.message : 'Cập nhật thất bại');
     } finally {
@@ -61,7 +57,6 @@ export function ProfilePage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwError('');
-    setPwSuccess('');
     if (newPassword !== confirmPassword) {
       setPwError('Mật khẩu xác nhận không khớp');
       return;
@@ -74,7 +69,6 @@ export function ProfilePage() {
         confirmPassword
       });
       showSuccessToast('Đổi mật khẩu thành công!');
-      setPwSuccess('Đổi mật khẩu thành công!');
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -151,12 +145,6 @@ export function ProfilePage() {
           {profileError &&
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
               {profileError}
-            </div>
-        }
-          {profileSuccess &&
-        <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center gap-2">
-              <CheckCircleIcon className="w-4 h-4" />
-              {profileSuccess}
             </div>
         }
 
@@ -255,13 +243,7 @@ export function ProfilePage() {
               <CheckCircleIcon className="w-4 h-4" />
               {pwSuccess}
             </div>
-        }
-
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-1.5">
-              Mật khẩu hiện tại
-            </label>
-            <div className="relative">
+        }   <div className="relative">
               <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-400" />
               <input
               type={showOld ? 'text' : 'password'}

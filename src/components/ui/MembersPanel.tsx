@@ -35,7 +35,6 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<TreeRole>('VIEWER');
   const [inviting, setInviting] = useState(false);
-  const [inviteSuccess, setInviteSuccess] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -72,14 +71,12 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
     e.preventDefault();
     setInviting(true);
     setError('');
-    setInviteSuccess('');
     try {
       await invitationService.sendInvitation(treeId, {
         email: inviteEmail,
         role: inviteRole
       });
       showSuccessToast(`Đã gửi lời mời đến ${inviteEmail}`);
-      setInviteSuccess(`Đã gửi lời mời đến ${inviteEmail}`);
       setInviteEmail('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Gửi lời mời thất bại');
@@ -319,11 +316,6 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
                   Gửi lời mời
                 </button>
               </form>
-              {inviteSuccess &&
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
-                  {inviteSuccess}
-                </div>
-            }
             </div> :
 
           <div>
@@ -391,7 +383,9 @@ export function MembersPanel({ treeId, myRole, onClose }: MembersPanelProps) {
           cancelText="Hủy"
           isDangerous
           isLoading={deleting}
-          onConfirm={() => deletingUserId && handleRemoveMember(deletingUserId)}
+          onConfirm={() => {
+            if (deletingUserId) handleRemoveMember(deletingUserId);
+          }}
           onCancel={() => {
             setShowDeleteConfirm(false);
             setDeletingUserId(null);
