@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   XIcon,
   LoaderIcon,
   CalendarDaysIcon
 } from 'lucide-react';
 import { eventService } from '../../services/eventService';
+import { addressService } from '../../services/addressService';
 import { showSuccessToast, showErrorToast } from '../../utils/validation';
-import type { TreeEvent } from '../../types/event';
+import type { TreeEvent, CreateEventRequest } from '../../types/event';
+import type { Address } from '../../types/address';
 
 interface AddEventModalProps {
   isOpen: boolean;
@@ -33,10 +35,23 @@ export function AddEventModal({
   const [endedAt, setEndedAt] = useState(
     event?.endedAt ? new Date(event.endedAt).toISOString().split('T')[0] : ''
   );
+  const [treeAddresses, setTreeAddresses] = useState<Address[]>([]);
+  const [addressId, setAddressId] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  if (!isOpen) return null;
+  // Lazy load tree addresses when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    addressService
+      .getTreeAddresses(treeId)
+      .then((res) => {
+        if (res.success) setTreeAddresses(res.data || []);
+      })
+      .catch(() => {
+        // Optional: event can be created without an address
+      });
+  }, [isOpen, treeId]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -60,15 +75,15 @@ export function AddEventModal({
         endDate.setHours(23, 59, 59, 999);
       }
 
-      const eventData = {
+      const eventData: CreateEventRequest = {
         event: {
           name: eventName,
           description: description,
           startedAt: startDate.toISOString(),
-          endedAt: endDate?.toISOString()
+          ...(endDate ? { endedAt: endDate.toISOString() } : {})
         },
         treeEvent: {
-          addressId: undefined,
+          addressId: addressId || undefined,
           name: eventName
         }
       };
@@ -93,9 +108,12 @@ export function AddEventModal({
     setDescription('');
     setStartedAt('');
     setEndedAt('');
+    setAddressId('');
     setErrors({});
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -180,6 +198,25 @@ export function AddEventModal({
                 onChange={(e) => setEndedAt(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-warm-200 rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all" />
             </div>
+          </div>
+
+          {/* Address */}
+          <div>
+            <label className="block text-xs font-semibold text-warm-500 uppercase tracking-wider mb-2">
+              Địa điểm (tuỳ chọn)
+            </label>
+            <select
+              value={addressId}
+              onChange={(e) => setAddressId(e.target.value)}
+              className="w-full px-4 py-3 bg-white border border-warm-200 rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all"
+            >
+              <option value="">-- Không chọn --</option>
+              {treeAddresses.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.formattedAddress || a.addressLine}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Info */}

@@ -12,6 +12,7 @@ import { ShareTreeViewer } from './pages/ShareTreeViewer';
 import { AcceptInvitationPage } from './pages/AcceptInvitation';
 import { PersonsDirectoryPage } from './pages/PersonsDirectory';
 import { AdminUserViewerPage } from './pages/AdminUserViewer';
+import { OAuthCallbackPage } from './pages/OAuthCallback';
 import { Layout } from './components/layout/Layout';
 
 function AppContent() {
@@ -25,6 +26,7 @@ function AppContent() {
       <Route path="/register" element={<LoginPage />} />
       <Route path="/share" element={<ShareTreeViewer />} />
       <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+      <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
 
       {/* Protected Routes */}
       <Route

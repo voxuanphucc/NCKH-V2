@@ -185,9 +185,9 @@ export function FamilyTreeD3({
     attr('y', 0).
     attr('width', NODE_WIDTH).
     attr('height', NODE_HEIGHT).
-    html((d) => renderPersonHtml(d.data.person));
+    html((d: any) => renderPersonHtml(d.data.person));
     // Draw spouse if exists
-    const spouseGroups = nodeGroup.filter((d) => !!d.data.spouse);
+    const spouseGroups = nodeGroup.filter((d: any) => !!d.data.spouse);
     // Couple connector line
     spouseGroups.
     append('path').

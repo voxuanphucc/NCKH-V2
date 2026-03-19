@@ -21,7 +21,10 @@ import {
 import { treeService } from '../../services/treeService';
 import { familyService } from '../../services/familyService';
 import { eventService } from '../../services/eventService';
-import { showSuccessToast } from '../../utils/validation';
+import { mediaService } from '../../services/mediaService';
+import { addressService } from '../../services/addressService';
+import { invitationService } from '../../services/invitationService';
+import { showSuccessToast, showErrorToast } from '../../utils/validation';
 import type { Tree } from '../../types/tree';
 import type { TreeGraph } from '../../types/family';
 import type { TreeEvent } from '../../types/event';
@@ -74,7 +77,179 @@ export function TreeDetailPage() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [deletingTree, setDeletingTree] = useState(false);
   const [leavingTree, setLeavingTree] = useState(false);
-  
+
+  const cleanupTreeBeforeDelete = useCallback(
+    async (currentTreeId: string) => {
+      // Thử dọn lần lượt các phụ thuộc; nếu một bước lỗi thì log và tiếp tục
+      try {
+        const graphRes = await familyService.getGraph(currentTreeId);
+        const graphData = graphRes.success && graphRes.data ? graphRes.data : null;
+
+        // Families: gỡ children rồi xóa family
+        if (graphData?.families && graphData.families.length > 0) {
+          for (const family of graphData.families) {
+            const childrenIds = family.childrenIds || [];
+            for (const childId of childrenIds) {
+              try {
+                await familyService.removeChild(currentTreeId, family.id, childId);
+              } catch (err) {
+                console.error('Failed to remove child from family before delete tree:', {
+                  familyId: family.id,
+                  childId,
+                  err
+                });
+              }
+            }
+            try {
+              await familyService.deleteFamily(currentTreeId, family.id);
+            } catch (err) {
+              console.error('Failed to delete family before delete tree:', {
+                familyId: family.id,
+                err
+              });
+            }
+          }
+        }
+
+        // Events: xóa tất cả event của tree (backend sẽ gỡ participant)
+        try {
+          const eventsRes = await eventService.getTreeEvents(currentTreeId);
+          if (eventsRes.success && eventsRes.data) {
+            for (const ev of eventsRes.data) {
+              try {
+                await eventService.deleteEvent(currentTreeId, ev.id);
+              } catch (err) {
+                console.error('Failed to delete event before delete tree:', {
+                  eventId: ev.id,
+                  err
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load events before delete tree:', err);
+        }
+
+        // Tree media
+        try {
+          const mediaRes = await mediaService.getTreeMedia(currentTreeId);
+          if (mediaRes.success && mediaRes.data) {
+            for (const file of mediaRes.data) {
+              try {
+                await mediaService.deleteTreeMedia(currentTreeId, file.id);
+              } catch (err) {
+                console.error('Failed to delete tree media before delete tree:', {
+                  mediaFileId: file.id,
+                  err
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load tree media before delete tree:', err);
+        }
+
+        // Media của từng person trong cây
+        if (graphData?.persons && graphData.persons.length > 0) {
+          for (const person of graphData.persons) {
+            try {
+              const mediaRes = await mediaService.getPersonMedia(currentTreeId, person.id);
+              if (mediaRes.success && mediaRes.data) {
+                for (const file of mediaRes.data) {
+                  try {
+                    await mediaService.deletePersonMedia(currentTreeId, person.id, file.id);
+                  } catch (err) {
+                    console.error('Failed to delete person media before delete tree:', {
+                      personId: person.id,
+                      mediaFileId: file.id,
+                      err
+                    });
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Failed to load person media before delete tree:', {
+                personId: person.id,
+                err
+              });
+            }
+          }
+        }
+
+        // Tree addresses
+        try {
+          const addrRes = await addressService.getTreeAddresses(currentTreeId);
+          if (addrRes.success && addrRes.data) {
+            for (const addr of addrRes.data) {
+              try {
+                await addressService.deleteTreeAddress(currentTreeId, addr.id);
+              } catch (err) {
+                console.error('Failed to delete tree address before delete tree:', {
+                  addressId: addr.id,
+                  err
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load tree addresses before delete tree:', err);
+        }
+
+        // Addresses của từng person trong cây
+        if (graphData?.persons && graphData.persons.length > 0) {
+          for (const person of graphData.persons) {
+            try {
+              const addrRes = await addressService.getPersonAddresses(currentTreeId, person.id);
+              if (addrRes.success && addrRes.data) {
+                for (const addr of addrRes.data) {
+                  try {
+                    await addressService.deletePersonAddress(
+                      currentTreeId,
+                      person.id,
+                      addr.id
+                    );
+                  } catch (err) {
+                    console.error('Failed to delete person address before delete tree:', {
+                      personId: person.id,
+                      addressId: addr.id,
+                      err
+                    });
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Failed to load person addresses before delete tree:', {
+                personId: person.id,
+                err
+              });
+            }
+          }
+        }
+
+        // Share links
+        try {
+          const shareRes = await invitationService.getShareLinks(currentTreeId);
+          if (shareRes.success && shareRes.data) {
+            for (const link of shareRes.data) {
+              try {
+                await invitationService.deleteShareLink(currentTreeId, link.id);
+              } catch (err) {
+                console.error('Failed to delete share link before delete tree:', {
+                  shareLinkId: link.id,
+                  err
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load share links before delete tree:', err);
+        }
+      } catch (err) {
+        console.error('Unexpected error during cleanup before delete tree:', err);
+      }
+    },
+    []
+  );
   const fetchData = useCallback(async () => {
     if (!treeId) return;
     console.log('TreeDetail: fetchData called (refetching tree graph...)');
@@ -247,6 +422,10 @@ export function TreeDetailPage() {
   const canDelete = tree.myRole === 'OWNER';
   
   const handleDeleteTree = async () => {
+    if (!treeId) {
+      showErrorToast('Không xác định được cây gia phả cần xóa');
+      return;
+    }
     setDeletingTree(true);
     try {
       // Debug logging
@@ -256,6 +435,9 @@ export function TreeDetailPage() {
       console.log('User Role:', tree.myRole);
       console.log('Can Delete:', canDelete);
       console.log('API URL:', `${import.meta.env.VITE_API_URL}/trees/${treeId}`);
+
+      // Dọn dữ liệu phụ thuộc trước khi gọi API xóa cây
+      await cleanupTreeBeforeDelete(treeId);
       
       const res = await treeService.deleteTree(treeId);
       

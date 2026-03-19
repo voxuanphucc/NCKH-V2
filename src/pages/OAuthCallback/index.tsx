@@ -32,7 +32,7 @@ export function OAuthCallbackPage() {
         }
 
         // Store the token in localStorage
-        localStorage.setItem('accessToken', finalToken);
+        localStorage.setItem('access_token', finalToken);
 
         // The login() function will call getMe() API to fetch full user info
         try {
@@ -42,7 +42,7 @@ export function OAuthCallbackPage() {
         } catch (err) {
           console.error('Error fetching user info:', err);
           // Clear token if user fetch fails
-          localStorage.removeItem('accessToken');
+          localStorage.removeItem('access_token');
           showErrorToast('Không thể tải thông tin người dùng');
           navigate('/login');
         }

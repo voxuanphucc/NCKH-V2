@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { TreesIcon, EyeIcon, EyeOffIcon, LoaderIcon } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,8 +8,9 @@ import type { Gender } from '../../types/common';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(location.pathname !== '/register');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

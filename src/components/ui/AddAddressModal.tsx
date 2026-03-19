@@ -6,6 +6,29 @@ import { showSuccessToast, showErrorToast } from '../../utils/validation';
 import type { Address, CreateAddressRequest } from '../../types/address';
 import type { LookupItem } from '../../types/common';
 
+function toDateInputValue(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().split('T')[0];
+}
+
+function dateOnlyToIsoStart(dateOnly?: string): string | undefined {
+  if (!dateOnly) return undefined;
+  const d = new Date(dateOnly);
+  if (Number.isNaN(d.getTime())) return undefined;
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+function dateOnlyToIsoEnd(dateOnly?: string): string | undefined {
+  if (!dateOnly) return undefined;
+  const d = new Date(dateOnly);
+  if (Number.isNaN(d.getTime())) return undefined;
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
+}
+
 interface AddAddressModalProps {
   isOpen: boolean;
   mode: 'create' | 'edit';
@@ -79,8 +102,8 @@ export function AddAddressModal({
       setLatitude(address.latitude?.toString() || '');
       setLongitude(address.longitude?.toString() || '');
       setPlaceId(address.placeId || '');
-      setFromDate(address.fromDate || '');
-      setToDate(address.toDate || '');
+      setFromDate(toDateInputValue(address.fromDate));
+      setToDate(toDateInputValue(address.toDate));
       setIsPrimary(address.isPrimary || false);
       setDescription(address.description || '');
       // Find the address type ID from the name
@@ -136,6 +159,7 @@ export function AddAddressModal({
 
     setSubmitting(true);
     try {
+      const isPersonAddress = !!personId;
       const payload: CreateAddressRequest = {
         formattedAddress,
         addressLine,
@@ -148,9 +172,9 @@ export function AddAddressModal({
         longitude: longitude ? parseFloat(longitude) : undefined,
         placeId,
         addressTypeId,
-        fromDate,
-        toDate,
-        isPrimary,
+        fromDate: dateOnlyToIsoStart(fromDate),
+        toDate: dateOnlyToIsoEnd(toDate),
+        ...(isPersonAddress ? { isPrimary } : {}),
         description
       };
 
@@ -446,22 +470,24 @@ export function AddAddressModal({
                 />
               </div>
 
-              {/* Is Primary Checkbox */}
-              <div className="flex items-center gap-2 p-3 bg-warm-50 rounded-lg">
-                <input
-                  type="checkbox"
-                  id="isPrimary"
-                  checked={isPrimary}
-                  onChange={(e) => setIsPrimary(e.target.checked)}
-                  className="w-4 h-4 rounded border-warm-300 text-heritage-gold focus:ring-heritage-gold/30 cursor-pointer"
-                />
-                <label
-                  htmlFor="isPrimary"
-                  className="text-sm text-warm-700 cursor-pointer flex-1"
-                >
-                  Đặt làm địa chỉ chính
-                </label>
-              </div>
+              {/* Is Primary Checkbox (Person only) */}
+              {personId && (
+                <div className="flex items-center gap-2 p-3 bg-warm-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="isPrimary"
+                    checked={isPrimary}
+                    onChange={(e) => setIsPrimary(e.target.checked)}
+                    className="w-4 h-4 rounded border-warm-300 text-heritage-gold focus:ring-heritage-gold/30 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="isPrimary"
+                    className="text-sm text-warm-700 cursor-pointer flex-1"
+                  >
+                    Đặt làm địa chỉ chính
+                  </label>
+                </div>
+              )}
             </>
           )}
         </div>

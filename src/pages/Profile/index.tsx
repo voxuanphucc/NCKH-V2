@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   UserIcon,
   MailIcon,
@@ -14,6 +15,8 @@ import { userService } from '../../services/userService';
 import { showSuccessToast } from '../../utils/validation';
 import type { Gender } from '../../types/common';
 export function ProfilePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
   // Profile form
@@ -32,6 +35,13 @@ export function ProfilePage() {
   const [showNew, setShowNew] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
   const [pwError, setPwError] = useState('');
+
+  // Sync tab with URL hash so sidebar links don't "stick" together
+  useEffect(() => {
+    const hash = (location.hash || '').toLowerCase();
+    if (hash === '#password') setActiveTab('password');
+    else setActiveTab('profile');
+  }, [location.hash]);
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -123,13 +133,19 @@ export function ProfilePage() {
       {/* Tabs */}
       <div className="flex bg-warm-100 rounded-xl p-1 mb-6">
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => {
+            setActiveTab('profile');
+            navigate('/profile');
+          }}
           className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'profile' ? 'bg-white text-warm-800 shadow-sm' : 'text-warm-500 hover:text-warm-700'}`}>
           
           Thông tin
         </button>
         <button
-          onClick={() => setActiveTab('password')}
+          onClick={() => {
+            setActiveTab('password');
+            navigate('/profile#password');
+          }}
           className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'password' ? 'bg-white text-warm-800 shadow-sm' : 'text-warm-500 hover:text-warm-700'}`}>
           
           Đổi mật khẩu

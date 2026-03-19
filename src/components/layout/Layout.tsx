@@ -33,7 +33,8 @@ export function Layout({ children }: LayoutProps) {
       id: 'trees',
       label: 'Cây gia phả',
       icon: TreesIcon,
-      href: '/dashboard'
+      // Separate target so it doesn't "stick" active with Trang chủ
+      href: '/dashboard#trees'
     },
     {
       id: 'persons',
@@ -51,7 +52,8 @@ export function Layout({ children }: LayoutProps) {
       id: 'settings',
       label: 'Cài đặt',
       icon: SettingsIcon,
-      href: '/profile'
+      // Map to Profile's password tab (acts as "settings" for now)
+      href: '/profile#password'
     }
   ];
 
@@ -100,7 +102,8 @@ export function Layout({ children }: LayoutProps) {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
+            const current = `${location.pathname}${location.hash || ''}`;
+            const isActive = current === item.href;
             return (
               <button
                 key={item.id}

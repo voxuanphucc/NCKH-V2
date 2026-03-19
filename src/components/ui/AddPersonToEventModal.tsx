@@ -3,10 +3,12 @@ import { XIcon, LoaderIcon, UserPlusIcon } from 'lucide-react';
 import { eventService } from '../../services/eventService';
 import { treeService } from '../../services/treeService';
 import { lookupService } from '../../services/lookupService';
+import { addressService } from '../../services/addressService';
 import { showSuccessToast, showErrorToast } from '../../utils/validation';
 import type { TreeEvent } from '../../types/event';
 import type { Person } from '../../types/person';
 import type { LookupItem } from '../../types/common';
+import type { Address } from '../../types/address';
 
 interface AddPersonToEventModalProps {
   isOpen: boolean;
@@ -26,10 +28,12 @@ export function AddPersonToEventModal({
   const [persons, setPersons] = useState<Person[]>([]);
   const [eventTypes, setEventTypes] = useState<LookupItem[]>([]);
   const [roles, setRoles] = useState<LookupItem[]>([]);
+  const [treeAddresses, setTreeAddresses] = useState<Address[]>([]);
   
   const [personId, setPersonId] = useState('');
   const [eventTypeId, setEventTypeId] = useState('');
   const [roleInEventId, setRoleInEventId] = useState('');
+  const [addressId, setAddressId] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -45,10 +49,11 @@ export function AddPersonToEventModal({
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [graphRes, typesRes, rolesRes] = await Promise.all([
+      const [graphRes, typesRes, rolesRes, addressesRes] = await Promise.all([
         treeService.getGraph(treeId),
         lookupService.getEventTypes(),
-        lookupService.getRoleInEvents()
+        lookupService.getRoleInEvents(),
+        addressService.getTreeAddresses(treeId).catch(() => ({ success: true, data: [] as Address[] }))
       ]);
       
       if (graphRes.success && graphRes.data) {
@@ -56,6 +61,7 @@ export function AddPersonToEventModal({
       }
       if (typesRes.success) setEventTypes(typesRes.data);
       if (rolesRes.success) setRoles(rolesRes.data);
+      if (addressesRes.success) setTreeAddresses(addressesRes.data as Address[]);
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu cho form:', error);
       showErrorToast('Không thể tải dữ liệu. Vui lòng thử lại sau.');
@@ -68,6 +74,7 @@ export function AddPersonToEventModal({
     setPersonId('');
     setEventTypeId('');
     setRoleInEventId('');
+    setAddressId('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +91,7 @@ export function AddPersonToEventModal({
         personId,
         eventTypeId,
         roleInEventId,
+        addressId: addressId || undefined,
         name: personName,
       });
 
@@ -178,6 +186,23 @@ export function AddPersonToEventModal({
                   {roles.map(r => (
                     <option key={r.id} value={r.id}>
                       {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-warm-700 mb-1.5">
+                  Địa điểm (tuỳ chọn)
+                </label>
+                <select
+                  value={addressId}
+                  onChange={(e) => setAddressId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-warm-200 rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30">
+                  <option value="">-- Không chọn --</option>
+                  {treeAddresses.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.formattedAddress || a.addressLine}
                     </option>
                   ))}
                 </select>

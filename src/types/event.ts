@@ -15,7 +15,7 @@ export interface TreeEvent {
   name: string;
   description: string;
   startedAt: string;
-  endedAt: string;
+  endedAt?: string;
   status: number;
   createdBy: string;
   participants: EventParticipant[];
@@ -26,7 +26,7 @@ export interface CreateEventRequest {
     name: string;
     description: string;
     startedAt: string;
-    endedAt: string;
+    endedAt?: string;
   };
   treeEvent: {
     addressId?: string;
