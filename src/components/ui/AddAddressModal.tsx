@@ -214,7 +214,7 @@ export function AddAddressModal({
       } else {
         showErrorToast(
           res?.message ||
-            (mode === 'create' ? 'Thêm địa chỉ thất bại' : 'Cập nhật địa chỉ thất bại')
+          (mode === 'create' ? 'Thêm địa chỉ thất bại' : 'Cập nhật địa chỉ thất bại')
         );
       }
     } catch (error) {
@@ -261,9 +261,8 @@ export function AddAddressModal({
                   value={formattedAddress}
                   onChange={(e) => setFormattedAddress(e.target.value)}
                   placeholder="VD: 123 Nguyễn Huệ, Quận 1, TP HCM"
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${
-                    errors.formattedAddress ? 'border-red-300' : 'border-warm-200'
-                  }`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${errors.formattedAddress ? 'border-red-300' : 'border-warm-200'
+                    }`}
                 />
                 {errors.formattedAddress && (
                   <p className="text-xs text-red-500 mt-1">{errors.formattedAddress}</p>
@@ -280,9 +279,8 @@ export function AddAddressModal({
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
                   placeholder="VD: 123"
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${
-                    errors.addressLine ? 'border-red-300' : 'border-warm-200'
-                  }`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${errors.addressLine ? 'border-red-300' : 'border-warm-200'
+                    }`}
                 />
                 {errors.addressLine && (
                   <p className="text-xs text-red-500 mt-1">{errors.addressLine}</p>
@@ -395,14 +393,13 @@ export function AddAddressModal({
                 <select
                   value={addressTypeId}
                   onChange={(e) => setAddressTypeId(e.target.value)}
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${
-                    errors.addressTypeId ? 'border-red-300' : 'border-warm-200'
-                  }`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${errors.addressTypeId ? 'border-red-300' : 'border-warm-200'
+                    }`}
                 >
                   <option value="">-- Chọn loại địa chỉ --</option>
                   {addressTypes.map((type) => (
                     <option key={type.id} value={type.id}>
-                      {type.name}
+                      {type.description}
                     </option>
                   ))}
                 </select>
@@ -420,9 +417,8 @@ export function AddAddressModal({
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${
-                    errors.fromDate ? 'border-red-300' : 'border-warm-200'
-                  }`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-sm text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-colors ${errors.fromDate ? 'border-red-300' : 'border-warm-200'
+                    }`}
                 />
                 {errors.fromDate && (
                   <p className="text-xs text-red-500 mt-1">{errors.fromDate}</p>

@@ -69,7 +69,7 @@ export function AddEventModal({
     try {
       const startDate = new Date(startedAt);
       startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = endedAt ? new Date(endedAt) : null;
       if (endDate) {
         endDate.setHours(23, 59, 59, 999);
@@ -154,9 +154,8 @@ export function AddEventModal({
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="VD: Lễ cưới, sinh nhật, ..."
-              className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${
-                errors.eventName ? 'border-red-300' : 'border-warm-200'
-              }`} />
+              className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 placeholder-warm-300 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${errors.eventName ? 'border-red-300' : 'border-warm-200'
+                }`} />
             {errors.eventName && <p className="text-xs text-red-500 mt-1">{errors.eventName}</p>}
           </div>
 
@@ -183,9 +182,8 @@ export function AddEventModal({
                 type="date"
                 value={startedAt}
                 onChange={(e) => setStartedAt(e.target.value)}
-                className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${
-                  errors.startedAt ? 'border-red-300' : 'border-warm-200'
-                }`} />
+                className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${errors.startedAt ? 'border-red-300' : 'border-warm-200'
+                  }`} />
               {errors.startedAt && <p className="text-xs text-red-500 mt-1">{errors.startedAt}</p>}
             </div>
             <div>

@@ -26,5 +26,4 @@ export type Gender = 'MALE' | 'FEMALE';
 export type UserStatus = 'INACTIVE' | 'ACTIVE';
 export type TreeRole = 'VIEWER' | 'EDITOR' | 'ADMIN' | 'OWNER';
 export type MemberStatus = 'PENDING' | 'ACTIVE';
-export type UnionType = 'MARRIED' | 'DIVORCED' | 'PARTNER' | 'OTHER';
 export type SharePermission = 'VIEW' | 'EDIT';

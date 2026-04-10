@@ -15,7 +15,6 @@ interface TreeNode {
   person: PersonGraph;
   spouse?: PersonGraph;
   familyId?: string;
-  unionType?: string;
   children: TreeNode[];
 }
 const NODE_WIDTH = 180;
@@ -33,10 +32,10 @@ export function FamilyTreeD3({
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<
     SVGSVGElement,
     unknown> |
-  null>(null);
+    null>(null);
   useEffect(() => {
     if (!svgRef.current || !wrapperRef.current || graph.persons.length === 0)
-    return;
+      return;
     const svg = d3.select(svgRef.current);
     const width = wrapperRef.current.clientWidth;
     const height = wrapperRef.current.clientHeight;
@@ -48,68 +47,68 @@ export function FamilyTreeD3({
     // 2. Setup D3 Tree Layout
     // We use a custom node size. If a node has a spouse, it needs more width.
     const treeLayout = d3.
-    tree<TreeNode>().
-    nodeSize([NODE_WIDTH * 2.5, NODE_HEIGHT * 2.5]).
-    separation((a: any, b: any): number => {
-      // Add more horizontal space if nodes have spouses
-      const aHasSpouse = !!a.data.spouse;
-      const bHasSpouse = !!b.data.spouse;
-      let sep = a.parent === b.parent ? 1.2 : 1.5;
-      if (aHasSpouse || bHasSpouse) sep += 0.5;
-      return sep;
-    });
+      tree<TreeNode>().
+      nodeSize([NODE_WIDTH * 2.5, NODE_HEIGHT * 2.5]).
+      separation((a: any, b: any): number => {
+        // Add more horizontal space if nodes have spouses
+        const aHasSpouse = !!a.data.spouse;
+        const bHasSpouse = !!b.data.spouse;
+        let sep = a.parent === b.parent ? 1.2 : 1.5;
+        if (aHasSpouse || bHasSpouse) sep += 0.5;
+        return sep;
+      });
     const root = d3.hierarchy(hierarchyData);
     treeLayout(root);
     // 3. Setup Zoom
     const g = svg.append('g');
     const zoom = d3.
-    zoom<SVGSVGElement, unknown>().
-    scaleExtent([0.1, 3]).
-    on('zoom', (event: any) => {
-      g.attr('transform', event.transform);
-      setZoomLevel(Math.round(event.transform.k * 100));
-    });
+      zoom<SVGSVGElement, unknown>().
+      scaleExtent([0.1, 3]).
+      on('zoom', (event: any) => {
+        g.attr('transform', event.transform);
+        setZoomLevel(Math.round(event.transform.k * 100));
+      });
     svg.call(zoom);
     zoomBehaviorRef.current = zoom;
     // Draw parent-child links
     g.selectAll('.link').
-    data(root.links()).
-    enter().
-    append('path').
-    attr('class', 'link').
-    attr('fill', 'none').
-    attr('stroke', '#C4A882') // warm-300
-    .attr('stroke-width', 2).
-    attr('d', (d: any): string => {
-      // If parent has a spouse, the line should start from the middle of the couple
-      const sourceX = d.source.data.spouse ?
-      d.source.x + (NODE_WIDTH + SPOUSE_GAP) / 2 :
-      d.source.x;
-      const sourceY = d.source.y + NODE_HEIGHT;
-      const targetX = d.target.x;
-      const targetY = d.target.y;
-      return `M${sourceX},${sourceY} C${sourceX},${(sourceY + targetY) / 2} ${targetX},${(sourceY + targetY) / 2} ${targetX},${targetY}`;
-    });
+      data(root.links()).
+      enter().
+      append('path').
+      attr('class', 'link').
+      attr('fill', 'none').
+      attr('stroke', '#C4A882') // warm-300
+      .attr('stroke-width', 2).
+      attr('d', (d: any): string => {
+        // If parent has a spouse, the line should start from the middle of the couple
+        const sourceX = d.source.data.spouse ?
+          d.source.x + (NODE_WIDTH + SPOUSE_GAP) / 2 :
+          d.source.x;
+        const sourceY = d.source.y + NODE_HEIGHT;
+        const targetX = d.target.x;
+        const targetY = d.target.y;
+        return `M${sourceX},${sourceY} C${sourceX},${(sourceY + targetY) / 2} ${targetX},${(sourceY + targetY) / 2} ${targetX},${targetY}`;
+      });
     // 5. Draw Nodes
     const nodeGroup = g.
-    selectAll('.node').
-    data(root.descendants()).
-    enter().
-    append('g').
-    attr('class', 'node').
-    attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+      selectAll('.node').
+      data(root.descendants()).
+      enter().
+      append('g').
+      attr('class', 'node').
+      attr('transform', (d: any) => `translate(${d.x},${d.y})`);
     // Helper to render a person card inside foreignObject
     const renderPersonHtml = (person: PersonGraph) => {
       const isMale = person.gender === 'MALE';
       const isSelected = selectedPersonId === person.id;
       const isDeceased = !!person.dateOfDeath;
       const isRoot = graph.meta.rootPersonId === person.id;
-      
+
       // Màu sắc cho viền
       let borderColor = 'border-warm-300';
       let bgColor = 'bg-white';
       let shadow = 'shadow-sm hover:shadow-md';
-      
+
       if (isDeceased) {
         borderColor = 'border-gray-300';
         bgColor = isRoot ? 'bg-yellow-50' : 'bg-white';
@@ -118,7 +117,7 @@ export function FamilyTreeD3({
       } else {
         borderColor = 'border-pink-400';
       }
-      
+
       // Highlight cho người được chọn
       if (isSelected) {
         bgColor = isDeceased ? 'bg-gray-50' : isMale ? 'bg-blue-50' : 'bg-pink-50';
@@ -126,36 +125,36 @@ export function FamilyTreeD3({
         shadow = isDeceased
           ? 'shadow-lg shadow-gray-400/20'
           : isMale
-          ? 'shadow-lg shadow-blue-400/20'
-          : 'shadow-lg shadow-pink-400/20';
+            ? 'shadow-lg shadow-blue-400/20'
+            : 'shadow-lg shadow-pink-400/20';
       }
-      
+
       // Highlight cho người gốc
       if (isRoot && !isSelected) {
         bgColor = 'bg-yellow-50';
         shadow = 'shadow-md shadow-yellow-400/30 ring-2 ring-heritage-gold/40';
       }
-      
+
       const opacity = isDeceased && !isRoot ? 'opacity-75' : isDeceased ? 'opacity-85' : 'opacity-100';
-      
+
       const avatarBg = isDeceased
         ? 'bg-gray-100 text-gray-500'
         : isMale ?
-        'bg-blue-50 text-blue-500' :
-        'bg-pink-50 text-pink-500';
-      
+          'bg-blue-50 text-blue-500' :
+          'bg-pink-50 text-pink-500';
+
       const genderText = isMale ? 'Nam' : 'Nữ';
       const birthYear = person.dateOfBirth ?
-      new Date(person.dateOfBirth).getFullYear() :
-      '';
+        new Date(person.dateOfBirth).getFullYear() :
+        '';
       const deathYear = person.dateOfDeath ?
-      new Date(person.dateOfDeath).getFullYear() :
-      '';
+        new Date(person.dateOfDeath).getFullYear() :
+        '';
       const years = birthYear ?
-      `${birthYear}${deathYear ? ` - ${deathYear}` : ''}` :
-      '';
+        `${birthYear}${deathYear ? ` - ${deathYear}` : ''}` :
+        '';
       const avatarUrl = person.avatarUrl || getDefaultAvatar(person.gender, person.dateOfBirth);
-      
+
       return `
         <div class="w-full h-full rounded-xl border-2 ${borderColor} ${bgColor} ${shadow} ${opacity} p-2 flex items-center gap-2 cursor-pointer transition-all" 
              onclick="window.handlePersonClick('${person.id}')">
@@ -167,54 +166,54 @@ export function FamilyTreeD3({
               ${person.fullName || `${person.lastName} ${person.firstName}`}
             </p>
             <p class="text-warm-400 truncate text-[10px]">
-              ${genderText} ${person.generation !== undefined ? `· Đời ${person.generation + 1}` : ''}
+              ${genderText} ${person.generation !== undefined ? `· Đời ${person.generation}` : ''}
             </p>
             ${years ? `<p class="text-warm-300 truncate text-[9px]">${years}</p>` : ''}
           </div>
         </div>
       `;
     }
-    // Attach click handler to window since we're using raw HTML string
-;(window as any).handlePersonClick = (id: string) => {
-      onPersonClick(id);
-    };
+      // Attach click handler to window since we're using raw HTML string
+      ; (window as any).handlePersonClick = (id: string) => {
+        onPersonClick(id);
+      };
     // Draw main person
     nodeGroup.
-    append('foreignObject').
-    attr('x', -NODE_WIDTH / 2).
-    attr('y', 0).
-    attr('width', NODE_WIDTH).
-    attr('height', NODE_HEIGHT).
-    html((d: any) => renderPersonHtml(d.data.person));
+      append('foreignObject').
+      attr('x', -NODE_WIDTH / 2).
+      attr('y', 0).
+      attr('width', NODE_WIDTH).
+      attr('height', NODE_HEIGHT).
+      html((d: any) => renderPersonHtml(d.data.person));
     // Draw spouse if exists
     const spouseGroups = nodeGroup.filter((d: any) => !!d.data.spouse);
     // Couple connector line
     spouseGroups.
-    append('path').
-    attr(
-      'd',
-      `M${NODE_WIDTH / 2},${NODE_HEIGHT / 2} L${NODE_WIDTH / 2 + SPOUSE_GAP},${NODE_HEIGHT / 2}`
-    ).
-    attr('stroke', '#C4A882').
-    attr('stroke-width', 2).
-    attr('stroke-dasharray', '4,4');
+      append('path').
+      attr(
+        'd',
+        `M${NODE_WIDTH / 2},${NODE_HEIGHT / 2} L${NODE_WIDTH / 2 + SPOUSE_GAP},${NODE_HEIGHT / 2}`
+      ).
+      attr('stroke', '#C4A882').
+      attr('stroke-width', 2).
+      attr('stroke-dasharray', '4,4');
     // Heart icon
     spouseGroups.
-    append('text').
-    attr('x', NODE_WIDTH / 2 + SPOUSE_GAP / 2).
-    attr('y', NODE_HEIGHT / 2 + 4).
-    attr('text-anchor', 'middle').
-    attr('fill', '#C49A3C').
-    attr('font-size', '12px').
-    text('♥');
+      append('text').
+      attr('x', NODE_WIDTH / 2 + SPOUSE_GAP / 2).
+      attr('y', NODE_HEIGHT / 2 + 4).
+      attr('text-anchor', 'middle').
+      attr('fill', '#C49A3C').
+      attr('font-size', '12px').
+      text('♥');
     // Spouse foreignObject
     spouseGroups.
-    append('foreignObject').
-    attr('x', NODE_WIDTH / 2 + SPOUSE_GAP).
-    attr('y', 0).
-    attr('width', NODE_WIDTH).
-    attr('height', NODE_HEIGHT).
-    html((d: any): string => renderPersonHtml(d.data.spouse!));
+      append('foreignObject').
+      attr('x', NODE_WIDTH / 2 + SPOUSE_GAP).
+      attr('y', 0).
+      attr('width', NODE_WIDTH).
+      attr('height', NODE_HEIGHT).
+      html((d: any): string => renderPersonHtml(d.data.spouse!));
     // 6. Center the tree initially
     const bounds = g.node()?.getBBox();
     if (bounds) {
@@ -241,70 +240,100 @@ export function FamilyTreeD3({
   function buildHierarchy(graphData: TreeGraph): TreeNode | null {
     const { persons, families, meta } = graphData;
     if (!meta.rootPersonId || persons.length === 0) return null;
+
     const personMap = new Map(persons.map((p) => [p.id, p]));
-    const familyMap = new Map<string, FamilyGraph[]>(); // personId -> families where they are parent
+
+    // Map: personId -> các family mà người đó là PARENT
+    const parentFamilyMap = new Map<string, FamilyGraph[]>();
+    // Map: personId -> family mà người đó là CON (để leo ngược)
+    const childFamilyMap = new Map<string, FamilyGraph>();
+
     families.forEach((f) => {
-      if (!familyMap.has(f.parent1Id)) familyMap.set(f.parent1Id, []);
-      familyMap.get(f.parent1Id)!.push(f);
+      if (!parentFamilyMap.has(f.parent1Id)) parentFamilyMap.set(f.parent1Id, []);
+      parentFamilyMap.get(f.parent1Id)!.push(f);
       if (f.parent2Id) {
-        if (!familyMap.has(f.parent2Id)) familyMap.set(f.parent2Id, []);
-        familyMap.get(f.parent2Id)!.push(f);
+        if (!parentFamilyMap.has(f.parent2Id)) parentFamilyMap.set(f.parent2Id, []);
+        parentFamilyMap.get(f.parent2Id)!.push(f);
       }
+      f.childrenIds.forEach((childId) => {
+        childFamilyMap.set(childId, f);
+      });
     });
+
+    // Leo ngược lên để tìm ancestor cao nhất
+    function findTopAncestor(personId: string): string {
+      const parentFamily = childFamilyMap.get(personId);
+      if (!parentFamily) return personId; // Đã là gốc
+      // Ưu tiên parent1, leo ngược tiếp
+      return findTopAncestor(parentFamily.parent1Id);
+    }
+
+    const topAncestorId = findTopAncestor(meta.rootPersonId);
+
+    // Build cây từ ancestor cao nhất xuống
     const visited = new Set<string>();
+
     function buildNode(personId: string): TreeNode | null {
-      if (visited.has(personId)) return null; // Prevent infinite loops
+      if (visited.has(personId)) return null;
       visited.add(personId);
+
       const person = personMap.get(personId);
       if (!person) return null;
-      const node: TreeNode = {
-        id: person.id,
-        person: person,
-        children: []
-      };
-      // Find families where this person is a parent
-      const personFamilies = familyMap.get(personId) || [];
-      // For simplicity in this visualization, we'll just take the first family for the spouse
-      // A more complex visualization would handle multiple marriages differently
+
+      const node: TreeNode = { id: person.id, person, children: [] };
+
+      const personFamilies = parentFamilyMap.get(personId) || [];
       if (personFamilies.length > 0) {
-        const primaryFamily = personFamilies[0];
+        // Ưu tiên gia đình có spouse
+        const primaryFamily =
+          personFamilies.find((f) => {
+            const spouseId =
+              f.parent1Id === personId ? f.parent2Id : f.parent1Id;
+            return !!spouseId;
+          }) || personFamilies[0];
+
         node.familyId = primaryFamily.id;
         node.unionType = primaryFamily.unionType;
-        // Find spouse
+
         const spouseId =
-        primaryFamily.parent1Id === personId ?
-        primaryFamily.parent2Id :
-        primaryFamily.parent1Id;
+          primaryFamily.parent1Id === personId
+            ? primaryFamily.parent2Id
+            : primaryFamily.parent1Id;
         if (spouseId) {
           node.spouse = personMap.get(spouseId);
-          visited.add(spouseId); // Mark spouse as visited so they don't appear as a separate root
+          visited.add(spouseId);
         }
-        // Add children
-        primaryFamily.childrenIds.forEach((childId) => {
+
+        // Gộp con từ TẤT CẢ gia đình
+        const allChildIds = new Set<string>();
+        personFamilies.forEach((f) => {
+          f.childrenIds.forEach((id) => allChildIds.add(id));
+        });
+        allChildIds.forEach((childId) => {
           const childNode = buildNode(childId);
-          if (childNode) {
-            node.children.push(childNode);
-          }
+          if (childNode) node.children.push(childNode);
         });
       }
+
       return node;
     }
-    return buildNode(meta.rootPersonId);
+
+    return buildNode(topAncestorId);
   }
   const handleZoomIn = () => {
     if (svgRef.current && zoomBehaviorRef.current) {
       d3.select(svgRef.current).
-      transition().
-      duration(300).
-      call(zoomBehaviorRef.current.scaleBy as any, 1.3);
+        transition().
+        duration(300).
+        call(zoomBehaviorRef.current.scaleBy as any, 1.3);
     }
   };
   const handleZoomOut = () => {
     if (svgRef.current && zoomBehaviorRef.current) {
       d3.select(svgRef.current).
-      transition().
-      duration(300).
-      call(zoomBehaviorRef.current.scaleBy as any, 0.7);
+        transition().
+        duration(300).
+        call(zoomBehaviorRef.current.scaleBy as any, 0.7);
     }
   };
   const handleCenter = () => {
@@ -325,12 +354,12 @@ export function FamilyTreeD3({
         );
         const translate = [width / 2 - scale * x, height / 2 - scale * y];
         svg.
-        transition().
-        duration(500).
-        call(
-          zoomBehaviorRef.current.transform as any,
-          d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-        );
+          transition().
+          duration(500).
+          call(
+            zoomBehaviorRef.current.transform as any,
+            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+          );
       }
     }
   };
@@ -351,21 +380,21 @@ export function FamilyTreeD3({
     <div
       className="relative w-full h-full bg-cream texture-overlay"
       ref={wrapperRef}>
-      
+
       {/* Controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-1.5 bg-white rounded-xl border border-warm-200 shadow-sm p-1.5">
         <button
           onClick={handleZoomIn}
           className="p-2 rounded-lg text-warm-600 hover:bg-warm-50 transition-colors"
           aria-label="Phóng to">
-          
+
           <ZoomInIcon className="w-4 h-4" />
         </button>
         <button
           onClick={handleZoomOut}
           className="p-2 rounded-lg text-warm-600 hover:bg-warm-50 transition-colors"
           aria-label="Thu nhỏ">
-          
+
           <ZoomOutIcon className="w-4 h-4" />
         </button>
         <div className="w-full h-px bg-warm-100" />
@@ -373,7 +402,7 @@ export function FamilyTreeD3({
           onClick={handleCenter}
           className="p-2 rounded-lg text-warm-600 hover:bg-warm-50 transition-colors"
           aria-label="Căn giữa">
-          
+
           <MaximizeIcon className="w-4 h-4" />
         </button>
       </div>
@@ -381,7 +410,7 @@ export function FamilyTreeD3({
       {/* Legend - Chú thích */}
       <div className="absolute bottom-4 left-4 z-10 bg-white/95 backdrop-blur-sm rounded-xl border border-warm-200 shadow-lg p-3 max-w-xs">
         <h3 className="text-xs font-bold text-warm-800 mb-2.5 uppercase tracking-wider">Chú thích</h3>
-        
+
         {/* Đường nối */}
         <div className="space-y-2">
           {/* Con cái - Solid line */}
@@ -461,7 +490,7 @@ export function FamilyTreeD3({
       <svg
         ref={svgRef}
         className="w-full h-full cursor-grab active:cursor-grabbing" />
-      
+
     </div>);
 
 }

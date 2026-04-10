@@ -1,4 +1,4 @@
-import type { Gender, UnionType } from './common';
+import type { Gender } from './common';
 
 export interface Person {
   id: string;
@@ -37,13 +37,11 @@ export interface CreatePersonRequest {
 }
 
 export interface CreateSpouseRequest extends CreatePersonRequest {
-  unionType: UnionType;
   fromDate?: string;
   toDate?: string;
 }
 
 export interface CreateParentRequest extends CreatePersonRequest {
-  unionType: UnionType;
   fromDate?: string;
   toDate?: string;
 }

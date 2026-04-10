@@ -16,8 +16,9 @@ import {
   TrashIcon,
   LogOutIcon,
   ChevronDownIcon,
-  MapPinIcon } from
-'lucide-react';
+  MapPinIcon
+} from
+  'lucide-react';
 import { treeService } from '../../services/treeService';
 import { familyService } from '../../services/familyService';
 import { eventService } from '../../services/eventService';
@@ -31,8 +32,9 @@ import type { TreeEvent } from '../../types/event';
 import type {
   CreatePersonRequest,
   CreateSpouseRequest,
-  CreateParentRequest } from
-'../../types/person';
+  CreateParentRequest
+} from
+  '../../types/person';
 import { FamilyTreeD3 } from '../../components/ui/FamilyTreeD3';
 import { PersonDetailPanel } from '../../components/ui/PersonDetailPanel';
 import { AddPersonModal } from '../../components/ui/AddPersonModal';
@@ -62,7 +64,7 @@ export function TreeDetailPage() {
   // Add person modal state
   const [addPersonMode, setAddPersonMode] = useState<
     'first' | 'spouse' | 'parent' | 'child' | null>(
-    null);
+      null);
   const [addPersonTargetId, setAddPersonTargetId] = useState<string>('');
   const [addPersonFamilyId, setAddPersonFamilyId] = useState<string>('');
   const [addPersonLoading, setAddPersonLoading] = useState(false);
@@ -256,36 +258,35 @@ export function TreeDetailPage() {
     setLoading(true);
     try {
       const [treeRes, graphRes, eventsRes] = await Promise.all([
-      treeService.getTree(treeId),
-      treeService.getGraph(treeId),
-      eventService.getTreeEvents(treeId).catch(() => ({
-        success: true,
-        data: []
-      }))]
+        treeService.getTree(treeId),
+        treeService.getGraph(treeId),
+        eventService.getTreeEvents(treeId).catch(() => ({
+          success: true,
+          data: []
+        }))]
       );
-      
+
       if (graphRes.success && graphRes.data) {
         console.log('🌳 GRAPH DATA:');
         console.log(`  Total persons: ${graphRes.data.persons.length}`);
         console.log(`  Total families: ${graphRes.data.families.length}`);
         console.log(`  Root person ID: ${graphRes.data.meta?.rootPersonId}`);
         console.log(`  Total generations: ${graphRes.data.meta?.totalGenerations}`);
-        
+
         console.log('📋 PERSONS:');
         graphRes.data.persons.forEach(p => {
           console.log(`  - ${p.id}: ${p.fullName} (Gen: ${p.generation})`);
         });
-        
+
         console.log('👨‍👩‍👧 FAMILIES:');
         graphRes.data.families.forEach(f => {
           console.log(`  - Family ${f.id}:`);
           console.log(`      Parent1: ${f.parent1Id}`);
           console.log(`      Parent2: ${f.parent2Id}`);
           console.log(`      Children: ${f.childrenIds.join(', ')}`);
-          console.log(`      Type: ${f.unionType}`);
         });
       }
-      
+
       if (treeRes.success) {
         setTree(treeRes.data);
         setEditName(treeRes.data.name);
@@ -295,7 +296,8 @@ export function TreeDetailPage() {
       if (eventsRes.success) setEvents(eventsRes.data as TreeEvent[]);
     } catch (error) {
       console.error('TreeDetail: fetchData error:', error);
-    } finally {setLoading(false);
+    } finally {
+      setLoading(false);
     }
   }, [treeId]);
 
@@ -326,7 +328,6 @@ export function TreeDetailPage() {
           dateOfDeath: data.dateOfDeath,
           citizenIdentificationNumber: data.citizenIdentificationNumber,
           avatarUrl: data.avatarUrl,
-          unionType: data.unionType || 'MARRIED',
           fromDate: data.fromDate,
           toDate: data.toDate
         };
@@ -340,7 +341,6 @@ export function TreeDetailPage() {
           dateOfDeath: data.dateOfDeath,
           citizenIdentificationNumber: data.citizenIdentificationNumber,
           avatarUrl: data.avatarUrl,
-          unionType: data.unionType || 'MARRIED',
           fromDate: data.fromDate,
           toDate: data.toDate
         };
@@ -379,7 +379,8 @@ export function TreeDetailPage() {
     } catch {
 
       // Handle error
-    } finally {setSavingTree(false);
+    } finally {
+      setSavingTree(false);
     }
   };
   const getTargetPersonName = () => {
@@ -407,7 +408,7 @@ export function TreeDetailPage() {
         <button
           onClick={() => navigate('/dashboard')}
           className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-warm-100 text-warm-700 rounded-xl hover:bg-warm-200 transition-colors">
-          
+
           <ArrowLeftIcon className="w-4 h-4" />
           Quay lại
         </button>
@@ -415,12 +416,12 @@ export function TreeDetailPage() {
 
   }
   const canEdit =
-  tree.myRole === 'OWNER' ||
-  tree.myRole === 'ADMIN' ||
-  tree.myRole === 'EDITOR';
-  
+    tree.myRole === 'OWNER' ||
+    tree.myRole === 'ADMIN' ||
+    tree.myRole === 'EDITOR';
+
   const canDelete = tree.myRole === 'OWNER';
-  
+
   const handleDeleteTree = async () => {
     if (!treeId) {
       showErrorToast('Không xác định được cây gia phả cần xóa');
@@ -438,11 +439,11 @@ export function TreeDetailPage() {
 
       // Dọn dữ liệu phụ thuộc trước khi gọi API xóa cây
       await cleanupTreeBeforeDelete(treeId);
-      
+
       const res = await treeService.deleteTree(treeId);
-      
+
       console.log('Delete Response:', res);
-      
+
       if (res.success) {
         showSuccessToast('Xóa cây gia phả thành công');
         navigate('/dashboard');
@@ -463,7 +464,7 @@ export function TreeDetailPage() {
       setShowDeleteConfirm(false);
     }
   };
-  
+
   const handleLeaveTree = async () => {
     setLeavingTree(true);
     try {
@@ -487,49 +488,49 @@ export function TreeDetailPage() {
           <button
             onClick={() => navigate('/dashboard')}
             className="mt-1 p-2 rounded-xl text-warm-400 hover:bg-warm-100 transition-colors">
-            
+
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
           <div>
             {isEditingTree ?
-            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="font-heading text-2xl font-bold text-warm-800 bg-transparent border-b-2 border-heritage-gold focus:outline-none" />
-              
-                <button
-                onClick={handleSaveTree}
-                disabled={savingTree}
-                className="p-2 rounded-lg bg-heritage-gold/10 text-heritage-gold hover:bg-heritage-gold/20 transition-colors">
-                
-                  {savingTree ?
-                <LoaderIcon className="w-4 h-4 animate-spin" /> :
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="font-heading text-2xl font-bold text-warm-800 bg-transparent border-b-2 border-heritage-gold focus:outline-none" />
 
-                <SaveIcon className="w-4 h-4" />
-                }
+                <button
+                  onClick={handleSaveTree}
+                  disabled={savingTree}
+                  className="p-2 rounded-lg bg-heritage-gold/10 text-heritage-gold hover:bg-heritage-gold/20 transition-colors">
+
+                  {savingTree ?
+                    <LoaderIcon className="w-4 h-4 animate-spin" /> :
+
+                    <SaveIcon className="w-4 h-4" />
+                  }
                 </button>
                 <button
-                onClick={() => setIsEditingTree(false)}
-                className="p-2 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors">
-                
+                  onClick={() => setIsEditingTree(false)}
+                  className="p-2 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors">
+
                   <XIcon className="w-4 h-4" />
                 </button>
               </div> :
 
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <h1 className="font-heading text-2xl font-bold text-warm-800">
                   {tree.name}
                 </h1>
                 {canEdit &&
-              <button
-                onClick={() => setIsEditingTree(true)}
-                className="p-1.5 rounded-lg text-warm-300 hover:text-warm-500 hover:bg-warm-100 transition-colors">
-                
+                  <button
+                    onClick={() => setIsEditingTree(true)}
+                    className="p-1.5 rounded-lg text-warm-300 hover:text-warm-500 hover:bg-warm-100 transition-colors">
+
                     <PencilIcon className="w-4 h-4" />
                   </button>
-              }
+                }
               </div>
             }
             <div className="mt-2 space-y-1">
@@ -558,10 +559,10 @@ export function TreeDetailPage() {
 
         <div className="flex items-center gap-2">
           {canEdit && graph && graph.persons.length === 0 &&
-          <button
-            onClick={() => setAddPersonMode('first')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-warm-800 text-cream text-sm font-medium rounded-xl hover:bg-warm-700 transition-colors">
-            
+            <button
+              onClick={() => setAddPersonMode('first')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-warm-800 text-cream text-sm font-medium rounded-xl hover:bg-warm-700 transition-colors">
+
               <UserPlusIcon className="w-4 h-4" />
               Thêm người đầu tiên
             </button>
@@ -570,41 +571,41 @@ export function TreeDetailPage() {
             onClick={() => setShowEvents(!showEvents)}
             className={`p-2.5 rounded-xl border transition-colors ${showEvents ? 'bg-heritage-gold/10 border-heritage-gold/30 text-heritage-gold' : 'border-warm-200 text-warm-500 hover:bg-warm-50'}`}
             title="Sự kiện">
-            
+
             <CalendarDaysIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowMembers(true)}
             className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
             title="Thành viên">
-            
+
             <UsersIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowAddresses(true)}
             className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
             title="Địa chỉ">
-            
+
             <MapPinIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowTreeMedia(true)}
             className={`p-2.5 rounded-xl border transition-colors ${showTreeMedia ? 'bg-heritage-gold/10 border-heritage-gold/30 text-heritage-gold' : 'border-warm-200 text-warm-500 hover:bg-warm-50'}`}
             title="Media">
-            
+
             <ImageIcon className="w-4 h-4" />
           </button>
-          
+
           {/* Settings Menu */}
           <div className="relative">
             <button
               onClick={() => setShowSettingsMenu(!showSettingsMenu)}
               className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
               title="Cài đặt">
-              
+
               <SettingsIcon className="w-4 h-4" />
             </button>
-            
+
             {showSettingsMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-warm-200 shadow-lg z-50">
                 <div className="py-2">
@@ -615,11 +616,11 @@ export function TreeDetailPage() {
                       setShowSettingsMenu(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-warm-600 hover:bg-warm-50 transition-colors">
-                    
+
                     <LogOutIcon className="w-4 h-4" />
                     Rời khỏi cây
                   </button>
-                  
+
                   {/* Delete Tree - OWNER only */}
                   {canDelete && (
                     <button
@@ -628,7 +629,7 @@ export function TreeDetailPage() {
                         setShowSettingsMenu(false);
                       }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-warm-100">
-                      
+
                       <TrashIcon className="w-4 h-4" />
                       Xóa cây
                     </button>
@@ -639,7 +640,7 @@ export function TreeDetailPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Confirmation Modals */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -658,7 +659,7 @@ export function TreeDetailPage() {
                 onClick={handleDeleteTree}
                 disabled={deletingTree}
                 className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                
+
                 {deletingTree ? (
                   <LoaderIcon className="w-4 h-4 animate-spin" />
                 ) : (
@@ -670,7 +671,7 @@ export function TreeDetailPage() {
           </div>
         </div>
       )}
-      
+
       {showLeaveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md shadow-xl">
@@ -688,7 +689,7 @@ export function TreeDetailPage() {
                 onClick={handleLeaveTree}
                 disabled={leavingTree}
                 className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                
+
                 {leavingTree ? (
                   <LoaderIcon className="w-4 h-4 animate-spin" />
                 ) : (
@@ -706,13 +707,13 @@ export function TreeDetailPage() {
         {/* Graph */}
         <div className="flex-1 bg-white rounded-2xl border border-warm-200/60 overflow-hidden relative">
           {graph ?
-          <FamilyTreeD3
-            graph={graph}
-            onPersonClick={(id) => setSelectedPersonId(id)}
-            selectedPersonId={selectedPersonId || undefined} /> :
+            <FamilyTreeD3
+              graph={graph}
+              onPersonClick={(id) => setSelectedPersonId(id)}
+              selectedPersonId={selectedPersonId || undefined} /> :
 
 
-          <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <TreesIcon className="w-16 h-16 mx-auto mb-4 text-warm-200" />
                 <p className="text-warm-400">Không thể tải cây gia phả</p>
@@ -723,7 +724,7 @@ export function TreeDetailPage() {
 
         {/* Events sidebar */}
         {showEvents &&
-        <div className="w-80 bg-white rounded-2xl border border-warm-200/60 overflow-hidden flex flex-col animate-slide-in-right flex-shrink-0">
+          <div className="w-80 bg-white rounded-2xl border border-warm-200/60 overflow-hidden flex flex-col animate-slide-in-right flex-shrink-0">
             <div className="flex items-center justify-between p-4 border-b border-warm-100">
               <div className="flex items-center gap-2">
                 <h3 className="font-heading text-base font-semibold text-warm-800">
@@ -740,64 +741,64 @@ export function TreeDetailPage() {
                 )}
               </div>
               <button
-              onClick={() => setShowEvents(false)}
-              className="p-1 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors">
-              
+                onClick={() => setShowEvents(false)}
+                className="p-1 rounded-lg text-warm-400 hover:bg-warm-100 transition-colors">
+
                 <XIcon className="w-4 h-4" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               {events.length === 0 ?
-            <div className="text-center py-8">
+                <div className="text-center py-8">
                   <CalendarDaysIcon className="w-10 h-10 mx-auto mb-3 text-warm-200" />
                   <p className="text-sm text-warm-400">Chưa có sự kiện</p>
                 </div> :
 
-            <div className="space-y-3">
+                <div className="space-y-3">
                   {events.map((event) =>
-              <button
-                key={event.id}
-                type="button"
-                onClick={() => setSelectedEvent(event)}
-                className="w-full text-left p-3 bg-warm-50 rounded-xl hover:bg-warm-100 transition-colors">
+                    <button
+                      key={event.id}
+                      type="button"
+                      onClick={() => setSelectedEvent(event)}
+                      className="w-full text-left p-3 bg-warm-50 rounded-xl hover:bg-warm-100 transition-colors">
                       <h4 className="text-sm font-semibold text-warm-800">
                         {event.name}
                       </h4>
                       {event.description &&
-                <p className="text-xs text-warm-400 mt-1 line-clamp-2">
+                        <p className="text-xs text-warm-400 mt-1 line-clamp-2">
                           {event.description}
                         </p>
-                }
+                      }
                       <div className="flex items-center gap-2 mt-2 text-xs text-warm-400">
                         <CalendarDaysIcon className="w-3 h-3" />
                         {new Date(event.startedAt).toLocaleDateString('vi-VN')}
                       </div>
                       {event.participants.length > 0 &&
-                <div className="mt-2 flex -space-x-1.5">
+                        <div className="mt-2 flex -space-x-1.5">
                           {event.participants.slice(0, 5).map((p) =>
-                  <div
-                    key={p.id}
-                    className="w-6 h-6 rounded-full bg-warm-200 border-2 border-white flex items-center justify-center"
-                    title={p.person.fullName}>
-                    
+                            <div
+                              key={p.id}
+                              className="w-6 h-6 rounded-full bg-warm-200 border-2 border-white flex items-center justify-center"
+                              title={p.person.fullName}>
+
                               <span className="text-[8px] font-bold text-warm-500">
                                 {(p.person.fullName || '?')[0]}
                               </span>
                             </div>
-                  )}
+                          )}
                           {event.participants.length > 5 &&
-                  <div className="w-6 h-6 rounded-full bg-warm-100 border-2 border-white flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full bg-warm-100 border-2 border-white flex items-center justify-center">
                               <span className="text-[8px] font-bold text-warm-400">
                                 +{event.participants.length - 5}
                               </span>
                             </div>
-                  }
+                          }
                         </div>
-                }
+                      }
                     </button>
-              )}
+                  )}
                 </div>
-            }
+              }
             </div>
           </div>
         }
@@ -805,42 +806,42 @@ export function TreeDetailPage() {
 
       {/* Person detail panel */}
       {selectedPersonId &&
-      <PersonDetailPanel
-        personId={selectedPersonId}
-        treeId={treeId}
-        graph={graph || undefined}
-        onClose={() => setSelectedPersonId(null)}
-        onPersonClick={(id) => setSelectedPersonId(id)}
-        onAddSpouse={(id) => {
-          setAddPersonTargetId(id);
-          setAddPersonMode('spouse');
-        }}
-        onAddParent={(id) => {
-          setAddPersonTargetId(id);
-          setAddPersonMode('parent');
-        }}
-        onAddChild={(familyId) => {
-          setAddPersonFamilyId(familyId);
-          setAddPersonMode('child');
-        }}
-        onRefresh={fetchData} />
+        <PersonDetailPanel
+          personId={selectedPersonId}
+          treeId={treeId}
+          graph={graph || undefined}
+          onClose={() => setSelectedPersonId(null)}
+          onPersonClick={(id) => setSelectedPersonId(id)}
+          onAddSpouse={(id) => {
+            setAddPersonTargetId(id);
+            setAddPersonMode('spouse');
+          }}
+          onAddParent={(id) => {
+            setAddPersonTargetId(id);
+            setAddPersonMode('parent');
+          }}
+          onAddChild={(familyId) => {
+            setAddPersonFamilyId(familyId);
+            setAddPersonMode('child');
+          }}
+          onRefresh={fetchData} />
 
       }
 
       {/* Members panel */}
       {showMembers &&
-      <MembersPanel
-        treeId={treeId}
-        myRole={tree.myRole}
-        onClose={() => setShowMembers(false)} />
+        <MembersPanel
+          treeId={treeId}
+          myRole={tree.myRole}
+          onClose={() => setShowMembers(false)} />
 
       }
 
       {/* Tree Addresses panel */}
       {showAddresses &&
-      <TreeAddressesPanel
-        treeId={treeId}
-        onClose={() => setShowAddresses(false)} />
+        <TreeAddressesPanel
+          treeId={treeId}
+          onClose={() => setShowAddresses(false)} />
 
       }
 
@@ -895,12 +896,12 @@ export function TreeDetailPage() {
 
       {/* Add person modal */}
       {addPersonMode &&
-      <AddPersonModal
-        mode={addPersonMode}
-        onClose={() => setAddPersonMode(null)}
-        onSubmit={handleAddPerson}
-        loading={addPersonLoading}
-        targetPersonName={getTargetPersonName()} />
+        <AddPersonModal
+          mode={addPersonMode}
+          onClose={() => setAddPersonMode(null)}
+          onSubmit={handleAddPerson}
+          loading={addPersonLoading}
+          targetPersonName={getTargetPersonName()} />
 
       }
     </div>);
