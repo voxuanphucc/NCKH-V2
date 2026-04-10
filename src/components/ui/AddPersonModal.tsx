@@ -201,11 +201,6 @@ export function AddPersonModal({
 
           {showUnionFields &&
             <>
-              <div className="pt-2 border-t border-warm-100">
-                <label className="block text-sm font-medium text-warm-700 mb-1.5">
-                  Quan hệ hôn nhân
-                </label>
-              </div>
               <div>
                 <label className="block text-sm font-medium text-warm-700 mb-1.5">
                   Ngày kết hôn

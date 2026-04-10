@@ -4,14 +4,13 @@ import { validateField, showErrorToast } from '../utils/validation';
 
 export const mediaService = {
   getTreeMedia: (treeId: string) =>
-  request<MediaFile[]>(`/trees/${treeId}/media`),
+    request<MediaFile[]>(`/trees/${treeId}/media`),
 
   uploadTreeMedia: (
-  treeId: string,
-  file: File,
-  mediaFileTypeId: string,
-  description?: string) =>
-  {
+    treeId: string,
+    file: File,
+    mediaFileTypeId: string,
+    description?: string) => {
     const fileError = validateField('media', 'file', file);
     const mediaTypeError = validateField('media', 'mediaFileTypeId', mediaFileTypeId);
 
@@ -36,20 +35,19 @@ export const mediaService = {
   },
 
   deleteTreeMedia: (treeId: string, mediaFileId: string) =>
-  request<string>(`/trees/${treeId}/media/${mediaFileId}`, {
-    method: 'DELETE'
-  }),
+    request<string>(`/trees/${treeId}/media/${mediaFileId}`, {
+      method: 'DELETE'
+    }),
 
   getPersonMedia: (treeId: string, personId: string) =>
-  request<MediaFile[]>(`/trees/${treeId}/persons/${personId}/media`),
+    request<MediaFile[]>(`/trees/${treeId}/persons/${personId}/media`),
 
   uploadPersonMedia: (
-  treeId: string,
-  personId: string,
-  file: File,
-  mediaFileTypeId: string,
-  description?: string) =>
-  {
+    treeId: string,
+    personId: string,
+    file: File,
+    mediaFileTypeId: string,
+    description?: string) => {
     const fileError = validateField('media', 'file', file);
     const mediaTypeError = validateField('media', 'mediaFileTypeId', mediaFileTypeId);
 
@@ -74,7 +72,12 @@ export const mediaService = {
   },
 
   deletePersonMedia: (treeId: string, personId: string, mediaFileId: string) =>
-  request<string>(`/trees/${treeId}/persons/${personId}/media/${mediaFileId}`, {
-    method: 'DELETE'
-  })
+    request<string>(`/trees/${treeId}/persons/${personId}/media/${mediaFileId}`, {
+      method: 'DELETE'
+    }),
+
+  deleteMedia: (treeId: string, mediaFileId: string) =>
+    request<string>(`/trees/${treeId}/media/${mediaFileId}`, {
+      method: 'DELETE'
+    })
 };
