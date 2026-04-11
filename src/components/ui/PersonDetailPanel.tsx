@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   XIcon,
   UserIcon,
@@ -15,7 +15,8 @@ import {
   SaveIcon,
   FileIcon,
   VideoIcon,
-  UploadIcon
+  UploadIcon,
+  CameraIcon
 } from 'lucide-react';
 import { personService } from '../../services/personService';
 import { familyService } from '../../services/familyService';
@@ -101,6 +102,11 @@ export function PersonDetailPanel({
   const [deletingMedia, setDeletingMedia] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<MediaFile | null>(null);
   const [lightboxMedia, setLightboxMedia] = useState<MediaFile | null>(null);
+
+
+  //Avatar
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -200,6 +206,26 @@ export function PersonDetailPanel({
       showErrorToast('Có lỗi khi cập nhật thông tin');
     } finally {
       setSaving(false);
+    }
+  };
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const res = await personService.uploadAvatar(personId, file);
+      if (res.success) {
+        setPerson(res.data);
+        showSuccessToast('Cập nhật ảnh đại diện thành công');
+        onRefresh();
+      } else {
+        showErrorToast(res.message || 'Upload thất bại');
+      }
+    } catch {
+      showErrorToast('Có lỗi khi upload ảnh');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
     }
   };
 
@@ -336,9 +362,29 @@ export function PersonDetailPanel({
         >
           <XIcon className="w-4 h-4" />
         </button>
-        <div className="px-6 -mt-10">
-          <div className={`w-20 h-20 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center ${isMale ? 'bg-blue-100 text-blue-500' : 'bg-pink-100 text-pink-500'}`}>
-            <img src={avatarUrl} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+        <div className="px-6 -mt-20 flex justify-center">
+          <div className="relative inline-block">
+            <div className={`w-40 h-40 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center ${isMale ? 'bg-blue-100 text-blue-500' : 'bg-pink-100 text-pink-500'}`}>
+              {uploadingAvatar ? (
+                <LoaderIcon className="w-8 h-8 animate-spin" />
+              ) : (
+                <img src={avatarUrl} alt="" className="w-40 h-40 rounded-2xl object-cover" />
+              )}
+            </div>
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-lg bg-heritage-gold text-white flex items-center justify-center shadow-md hover:bg-heritage-gold/90 transition-colors disabled:opacity-60"
+            >
+              <CameraIcon className="w-4 h-4" />
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
           </div>
         </div>
         <div className="px-6 mt-3 pb-4">

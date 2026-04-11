@@ -5,7 +5,7 @@ export interface EventParticipant {
   id: string;
   person: Person;
   eventType: string;
-  roleInEvent: string;
+  eventTypeDescription: string;
   address: Address | null;
   name: string;
 }
@@ -37,7 +37,6 @@ export interface CreateEventRequest {
 export interface AddPersonToEventRequest {
   personId: string;
   eventTypeId: string;
-  roleInEventId: string;
   addressId?: string;
   name: string;
 }

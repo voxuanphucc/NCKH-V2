@@ -58,7 +58,7 @@ export function EventDetailPanel({
     if (!confirm('Bạn chắc chắn muốn xóa thành viên này khỏi sự kiện?')) {
       return;
     }
-    
+
     try {
       setRemoving(personId);
       const res = await eventService.removePersonFromEvent(treeId, event.id, personId);
@@ -202,14 +202,9 @@ export function EventDetailPanel({
                         {participant.eventType && (
                           <>
                             <span className="inline-block px-2 py-0.5 bg-heritage-gold bg-opacity-20 text-heritage-gold rounded text-xs mr-2">
-                              {participant.eventType}
+                              {participant.eventTypeDescription}
                             </span>
                           </>
-                        )}
-                        {participant.roleInEvent && (
-                          <span className="inline-block px-2 py-0.5 bg-warm-200 text-warm-700 rounded text-xs">
-                            {participant.roleInEvent}
-                          </span>
                         )}
                       </p>
                     </div>

@@ -85,10 +85,18 @@ export const personService = {
   },
 
   deletePerson: (id: string) =>
-  request<string>(`/persons/${id}`, { method: 'DELETE' }),
+    request<string>(`/persons/${id}`, { method: 'DELETE' }),
 
   searchPersons: (keyword?: string, page = 0, size = 10) =>
-  request<PaginatedData<Person>>(
-    `/persons?keyword=${keyword || ''}&page=${page}&size=${size}`
-  )
+    request<PaginatedData<Person>>(
+      `/persons?keyword=${keyword || ''}&page=${page}&size=${size}`
+    ),
+  uploadAvatar: (personId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<Person>(`/persons/${personId}/upload-avatar`, {
+      method: 'PATCH',
+      body: formData,
+    });
+  },
 };

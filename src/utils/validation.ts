@@ -18,15 +18,15 @@ export const validationRules = {
       }
       return null;
     },
-    addressLine: (value: string) => {
-      if (!value || value.trim().length === 0) {
-        return 'Đường/phố không được để trống';
-      }
-      if (value.length > 200) {
-        return 'Đường/phố không được vượt quá 200 ký tự';
-      }
-      return null;
-    },
+    // addressLine: (value: string) => {
+    //   if (!value || value.trim().length === 0) {
+    //     return 'Đường/phố không được để trống';
+    //   }
+    //   if (value.length > 200) {
+    //     return 'Đường/phố không được vượt quá 200 ký tự';
+    //   }
+    //   return null;
+    // },
     ward: (value?: string) => {
       if (value && value.length > 100) {
         return 'Phường/xã không được vượt quá 100 ký tự';
@@ -69,16 +69,16 @@ export const validationRules = {
       }
       return null;
     },
-    fromDate: (value?: string | Date) => {
-      if (!value) {
-        return 'Ngày bắt đầu không được để trống';
-      }
-      const date = new Date(value);
-      if (isNaN(date.getTime())) {
-        return 'Ngày bắt đầu không hợp lệ';
-      }
-      return null;
-    },
+    // fromDate: (value?: string | Date) => {
+    //   if (!value) {
+    //     return 'Ngày bắt đầu không được để trống';
+    //   }
+    //   const date = new Date(value);
+    //   if (isNaN(date.getTime())) {
+    //     return 'Ngày bắt đầu không hợp lệ';
+    //   }
+    //   return null;
+    // },
     toDate: (value?: string | Date) => {
       if (value) {
         const date = new Date(value);

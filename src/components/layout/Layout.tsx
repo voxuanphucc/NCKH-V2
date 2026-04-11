@@ -8,8 +8,10 @@ import {
   MenuIcon,
   HomeIcon,
   SettingsIcon,
-  ChevronRightIcon } from
-'lucide-react';
+  ChevronRightIcon,
+  MapPinIcon
+} from
+  'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface LayoutProps {
@@ -23,47 +25,20 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    {
-      id: 'dashboard',
-      label: 'Trang chủ',
-      icon: HomeIcon,
-      href: '/dashboard'
-    },
-    {
-      id: 'trees',
-      label: 'Cây gia phả',
-      icon: TreesIcon,
-      // Separate target so it doesn't "stick" active with Trang chủ
-      href: '/dashboard#trees'
-    },
-    {
-      id: 'persons',
-      label: 'Danh bạ person',
-      icon: UsersIcon,
-      href: '/persons'
-    },
-    {
-      id: 'profile',
-      label: 'Hồ sơ cá nhân',
-      icon: UserIcon,
-      href: '/profile'
-    },
-    {
-      id: 'settings',
-      label: 'Cài đặt',
-      icon: SettingsIcon,
-      // Map to Profile's password tab (acts as "settings" for now)
-      href: '/profile#password'
-    }
+    { id: 'dashboard', label: 'Trang chủ', icon: HomeIcon, href: '/dashboard' },
+    { id: 'trees', label: 'Cây gia phả', icon: TreesIcon, href: '/dashboard#trees' },
+    { id: 'map', label: 'Bản đồ di tích', icon: MapPinIcon, href: '/heritage-map' },
+    { id: 'persons', label: 'Danh bạ person', icon: UsersIcon, href: '/persons' },
+    { id: 'profile', label: 'Hồ sơ cá nhân', icon: UserIcon, href: '/profile' },
+    { id: 'settings', label: 'Cài đặt', icon: SettingsIcon, href: '/profile#password' },
   ];
-
   return (
     <div className="min-h-screen w-full bg-cream flex">
       {/* Mobile overlay */}
       {sidebarOpen &&
-      <div
-        className="fixed inset-0 bg-warm-900/40 z-40 lg:hidden animate-fade-in"
-        onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-warm-900/40 z-40 lg:hidden animate-fade-in"
+          onClick={() => setSidebarOpen(false)} />
 
       }
 
@@ -75,7 +50,7 @@ export function Layout({ children }: LayoutProps) {
           transition-transform duration-300 ease-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
-        
+
         {/* Logo */}
         <div className="p-6 border-b border-warm-700/50">
           <button
@@ -84,7 +59,7 @@ export function Layout({ children }: LayoutProps) {
               setSidebarOpen(false);
             }}
             className="flex items-center gap-3">
-            
+
             <div className="w-10 h-10 rounded-lg bg-heritage-gold/20 flex items-center justify-center">
               <TreesIcon className="w-5 h-5 text-heritage-gold" />
             </div>
@@ -108,7 +83,7 @@ export function Layout({ children }: LayoutProps) {
               <button
                 key={item.id}
                 onClick={() => {
-                  navigate(item.href);
+                  if (item.href) navigate(item.href);
                   setSidebarOpen(false);
                 }}
                 className={`
@@ -116,11 +91,11 @@ export function Layout({ children }: LayoutProps) {
                   transition-all duration-200
                   ${isActive ? 'bg-heritage-gold/15 text-heritage-gold-light' : 'text-warm-300 hover:bg-warm-700/50 hover:text-warm-100'}
                 `}>
-                
+
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.label}</span>
                 {isActive &&
-                <ChevronRightIcon className="w-4 h-4 ml-auto opacity-60" />
+                  <ChevronRightIcon className="w-4 h-4 ml-auto opacity-60" />
                 }
               </button>);
 
@@ -132,13 +107,13 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
             <div className="w-9 h-9 rounded-full bg-heritage-gold/20 flex items-center justify-center flex-shrink-0">
               {user?.avatarUrl ?
-              <img
-                src={user.avatarUrl}
-                alt=""
-                className="w-9 h-9 rounded-full object-cover" /> :
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="w-9 h-9 rounded-full object-cover" /> :
 
 
-              <UserIcon className="w-4 h-4 text-heritage-gold" />
+                <UserIcon className="w-4 h-4 text-heritage-gold" />
               }
             </div>
             <div className="min-w-0 flex-1">
@@ -151,7 +126,7 @@ export function Layout({ children }: LayoutProps) {
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-warm-400 hover:bg-red-900/20 hover:text-red-300 transition-colors">
-            
+
             <LogOutIcon className="w-4 h-4" />
             <span>Đăng xuất</span>
           </button>
@@ -167,7 +142,7 @@ export function Layout({ children }: LayoutProps) {
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 -ml-2 rounded-lg text-warm-600 hover:bg-warm-100 transition-colors"
               aria-label="Mở menu">
-              
+
               <MenuIcon className="w-5 h-5" />
             </button>
 
@@ -188,13 +163,13 @@ export function Layout({ children }: LayoutProps) {
               </div>
               <div className="w-9 h-9 rounded-full bg-warm-200 flex items-center justify-center">
                 {user?.avatarUrl ?
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  className="w-9 h-9 rounded-full object-cover" /> :
+                  <img
+                    src={user.avatarUrl}
+                    alt=""
+                    className="w-9 h-9 rounded-full object-cover" /> :
 
 
-                <UserIcon className="w-4 h-4 text-warm-500" />
+                  <UserIcon className="w-4 h-4 text-warm-500" />
                 }
               </div>
             </div>

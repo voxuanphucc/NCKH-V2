@@ -54,8 +54,8 @@ export function FamilyTreeD3({
         // Add more horizontal space if nodes have spouses
         const aHasSpouse = !!a.data.spouse;
         const bHasSpouse = !!b.data.spouse;
-        let sep = a.parent === b.parent ? 1.2 : 1.5;
-        if (aHasSpouse || bHasSpouse) sep += 0.5;
+        let sep = a.parent === b.parent ? 0.7 : 1.0;
+        if (aHasSpouse || bHasSpouse) sep += 0.3;
         return sep;
       });
     const root = d3.hierarchy(hierarchyData);

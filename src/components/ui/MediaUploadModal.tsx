@@ -185,13 +185,12 @@ export function MediaUploadModal({
                 setErrors((prev) => ({ ...prev, mediaTypeId: '' }));
               }}
               disabled={loading}
-              className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${
-                errors.mediaTypeId ? 'border-red-300' : 'border-warm-200'
-              }`}>
+              className={`w-full px-4 py-3 bg-white border rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30 focus:border-heritage-gold transition-all ${errors.mediaTypeId ? 'border-red-300' : 'border-warm-200'
+                }`}>
               <option value="">Chọn loại media</option>
               {mediaTypes.map((type) => (
                 <option key={type.id} value={type.id}>
-                  {type.name}
+                  {type.description}
                 </option>
               ))}
             </select>

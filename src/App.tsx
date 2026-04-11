@@ -14,6 +14,7 @@ import { PersonsDirectoryPage } from './pages/PersonsDirectory';
 import { AdminUserViewerPage } from './pages/AdminUserViewer';
 import { OAuthCallbackPage } from './pages/OAuthCallback';
 import { Layout } from './components/layout/Layout';
+import { HeritageMapPage } from './pages/Heritagemappage/Heritagemappage';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -35,6 +36,16 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <DashboardPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/heritage-map"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <HeritageMapPage />
             </Layout>
           </ProtectedRoute>
         }

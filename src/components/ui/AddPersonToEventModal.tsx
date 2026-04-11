@@ -87,7 +87,6 @@ export function AddPersonToEventModal({
       const res = await eventService.addPersonToEvent(treeId, event.id, {
         personId,
         eventTypeId,
-        roleInEventId,
         addressId: addressId || undefined,
         name: personName,
       });
