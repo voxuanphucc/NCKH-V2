@@ -27,14 +27,13 @@ export function AddPersonToEventModal({
 }: AddPersonToEventModalProps) {
   const [persons, setPersons] = useState<Person[]>([]);
   const [eventTypes, setEventTypes] = useState<LookupItem[]>([]);
-  const [roles, setRoles] = useState<LookupItem[]>([]);
   const [treeAddresses, setTreeAddresses] = useState<Address[]>([]);
-  
+
   const [personId, setPersonId] = useState('');
   const [eventTypeId, setEventTypeId] = useState('');
   const [roleInEventId, setRoleInEventId] = useState('');
   const [addressId, setAddressId] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,18 +48,16 @@ export function AddPersonToEventModal({
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [graphRes, typesRes, rolesRes, addressesRes] = await Promise.all([
+      const [graphRes, typesRes, addressesRes] = await Promise.all([
         treeService.getGraph(treeId),
         lookupService.getEventTypes(),
-        lookupService.getRoleInEvents(),
         addressService.getTreeAddresses(treeId).catch(() => ({ success: true, data: [] as Address[] }))
       ]);
-      
+
       if (graphRes.success && graphRes.data) {
         setPersons(graphRes.data.persons || []);
       }
       if (typesRes.success) setEventTypes(typesRes.data);
-      if (rolesRes.success) setRoles(rolesRes.data);
       if (addressesRes.success) setTreeAddresses(addressesRes.data as Address[]);
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu cho form:', error);
@@ -79,7 +76,7 @@ export function AddPersonToEventModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!personId || !eventTypeId || !roleInEventId) {
+    if (!personId || !eventTypeId) {
       showErrorToast('Vui lòng chọn đầy đủ thông tin');
       return;
     }
@@ -167,29 +164,13 @@ export function AddPersonToEventModal({
                   <option value="">-- Chọn loại --</option>
                   {eventTypes.map(t => (
                     <option key={t.id} value={t.id}>
-                      {t.name}
+                      {t.description}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-warm-700 mb-1.5">
-                  Vai trò trong sự kiện *
-                </label>
-                <select
-                  value={roleInEventId}
-                  onChange={(e) => setRoleInEventId(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 bg-white border border-warm-200 rounded-xl text-warm-800 focus:outline-none focus:ring-2 focus:ring-heritage-gold/30">
-                  <option value="">-- Chọn vai trò --</option>
-                  {roles.map(r => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-warm-700 mb-1.5">

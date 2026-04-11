@@ -273,25 +273,29 @@ export function PersonDetailPanel({
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      if (graph) {
-        const familiesWithPersonAsChild = graph.families.filter((f) => f.childrenIds.includes(personId));
-        for (const family of familiesWithPersonAsChild) {
-          try { await familyService.removeChild(treeId, family.id, personId); } catch { /* ignore */ }
-        }
-        const familiesWithPersonAsParent = graph.families.filter((f) => f.parent1Id === personId || f.parent2Id === personId);
-        for (const family of familiesWithPersonAsParent) {
-          try { await familyService.deleteFamily(treeId, family.id); } catch { /* ignore */ }
-        }
+      // Bước 1: Kiểm tra
+      const checkRes = await familyService.checkDeletable(treeId, personId);
+      if (!checkRes.success) {
+        showErrorToast('Có lỗi khi kiểm tra');
+        return;
       }
-      const res = await personService.deletePerson(personId);
+
+      if (!checkRes.data.deletable) {
+        showErrorToast(checkRes.data.message ?? 'Không thể xóa người này');
+        setShowDeleteConfirm(false);
+        return;
+      }
+
+      // Bước 2: Hard delete
+      const res = await familyService.hardDeletePerson(treeId, personId);
       if (res.success) {
         showSuccessToast('Xóa thành viên thành công');
         setShowDeleteConfirm(false);
         onClose();
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((r) => setTimeout(r, 500));
         onRefresh();
       } else {
-        showErrorToast(res.message || 'Xóa thành viên thất bại');
+        showErrorToast(res.message || 'Xóa thất bại');
       }
     } catch {
       showErrorToast('Có lỗi khi xóa thành viên');
@@ -467,8 +471,9 @@ export function PersonDetailPanel({
               <>
                 <div>
                   <h4 className="text-xs font-semibold text-warm-400 uppercase tracking-wider mb-3">Cha mẹ</h4>
-                  {familyInfo.parentFamily ? (
-                    <div className="space-y-2">
+
+                  {familyInfo.parentFamily && (
+                    <div className="space-y-2 mb-2">
                       {familyInfo.parentFamily.parent1 && (
                         <button onClick={() => onPersonClick(familyInfo.parentFamily!.parent1.id)}
                           className="w-full flex items-center gap-3 p-3 bg-warm-50 rounded-xl hover:bg-warm-100 transition-colors text-left">
@@ -494,35 +499,45 @@ export function PersonDetailPanel({
                         </button>
                       )}
                     </div>
-                  ) : (
-                    <button onClick={() => onAddParent(personId)}
-                      className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-warm-200 rounded-xl text-sm text-warm-400 hover:border-warm-300 hover:text-warm-500 transition-colors">
-                      <UserPlusIcon className="w-4 h-4" />Thêm cha/mẹ
-                    </button>
                   )}
-                </div>
 
+                  {/* Chỉ ẩn nút khi đã có ĐỦ 2 cha mẹ */}
+                  {(!familyInfo.parentFamily ||
+                    !familyInfo.parentFamily.parent1 ||
+                    !familyInfo.parentFamily.parent2) && (
+                      <button onClick={() => onAddParent(personId)}
+                        className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-warm-200 rounded-xl text-sm text-warm-400 hover:border-warm-300 hover:text-warm-500 transition-colors">
+                        <UserPlusIcon className="w-4 h-4" />Thêm cha/mẹ
+                      </button>
+                    )}
+                </div>
                 <div>
                   <h4 className="text-xs font-semibold text-warm-400 uppercase tracking-wider mb-3">Vợ/Chồng</h4>
                   {familyInfo.spouseFamilies.length > 0 && (
                     <div className="space-y-3">
                       {familyInfo.spouseFamilies.map((sf) => {
                         const spouse = sf.parent1.id === personId ? sf.parent2 : sf.parent1;
-                        if (!spouse) return null;
                         return (
                           <div key={sf.id} className="bg-warm-50 rounded-xl p-3">
-                            <button onClick={() => onPersonClick(spouse.id)}
-                              className="w-full flex items-center gap-3 text-left hover:bg-warm-100 rounded-lg p-1 -m-1 transition-colors">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${spouse.gender === 'MALE' ? 'bg-blue-100 text-blue-500' : 'bg-pink-100 text-pink-500'}`}>
-                                <UserIcon className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-warm-800">{spouse.fullName}</p>
-                                <p className="text-xs text-warm-400">"Kết hôn"</p>
-                              </div>
-                            </button>
+                            {/* Chỉ hiện spouse nếu có */}
+                            {spouse ? (
+                              <button onClick={() => onPersonClick(spouse.id)}
+                                className="w-full flex items-center gap-3 text-left hover:bg-warm-100 rounded-lg p-1 -m-1 transition-colors">
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${spouse.gender === 'MALE' ? 'bg-blue-100 text-blue-500' : 'bg-pink-100 text-pink-500'}`}>
+                                  <UserIcon className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-warm-800">{spouse.fullName}</p>
+                                  <p className="text-xs text-warm-400">Kết hôn</p>
+                                </div>
+                              </button>
+                            ) : (
+                              <p className="text-xs text-warm-400 italic px-1">Chưa có vợ/chồng</p>
+                            )}
+
+                            {/* Con cái - luôn hiển thị */}
                             {sf.children.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-warm-100">
+                              <div className={`${spouse ? 'mt-3 pt-3 border-t border-warm-100' : ''}`}>
                                 <p className="text-xs text-warm-400 mb-2">Con ({sf.children.length})</p>
                                 <div className="space-y-1.5">
                                   {sf.children.map((child) => (
@@ -537,6 +552,8 @@ export function PersonDetailPanel({
                                 </div>
                               </div>
                             )}
+
+                            {/* Nút thêm con - luôn hiển thị */}
                             <button onClick={() => onAddChild(sf.id)}
                               className="mt-2 w-full flex items-center justify-center gap-1.5 p-2 border border-dashed border-warm-200 rounded-lg text-xs text-warm-400 hover:border-warm-300 hover:text-warm-500 transition-colors">
                               <UserPlusIcon className="w-3.5 h-3.5" />Thêm con
@@ -720,76 +737,89 @@ export function PersonDetailPanel({
 
         {/* MEDIA TAB */}
         {activeTab === 'media' && (
-          <div>
+          <div className="space-y-4">
+
+            {/* Upload button luôn ở trên */}
             <button
               onClick={() => setShowMediaModal(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-heritage-gold text-white text-sm font-medium rounded-xl hover:bg-heritage-gold/90 transition-colors mb-4"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-heritage-gold text-white text-sm font-medium rounded-xl hover:bg-heritage-gold/90 transition-colors"
             >
               <UploadIcon className="w-4 h-4" />
               Upload media
             </button>
 
+            {/* Empty state */}
             {media.length === 0 ? (
-              <div className="text-center py-6">
+              <div className="text-center py-8">
                 <ImageIcon className="w-10 h-10 mx-auto mb-3 text-warm-200" />
                 <p className="text-sm text-warm-400">Chưa có media nào</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
-                {media.map((file) => (
-                  <div
-                    key={file.id}
-                    className="group relative rounded-xl overflow-hidden bg-warm-50 border border-warm-100 hover:border-warm-200 transition-colors"
-                  >
-                    {isImageUrl(file.fileUrl) ? (
-                      <button onClick={() => setLightboxMedia(file)}>
-                        <img
-                          src={file.fileUrl}
-                          alt={file.fileName}
-                          className="w-full h-32 object-cover"
-                        />
-                      </button>
-                    ) : isVideoUrl(file.fileUrl) ? (
-                      <div className="w-full h-32 flex items-center justify-center bg-purple-50">
-                        <VideoIcon className="w-8 h-8 text-purple-300" />
-                      </div>
-                    ) : (
-                      <a
-                        href={file.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full h-32 flex items-center justify-center bg-warm-100 hover:bg-warm-200 transition-colors"
-                      >
-                        <FileIcon className="w-8 h-8 text-warm-300" />
-                      </a>
-                    )}
+                {media.map((file) => {
+                  const type = file.mediaFileType?.toUpperCase();
 
-                    <div className="p-2">
-                      <div className="flex items-start justify-between gap-1">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs text-warm-700 font-medium truncate">
-                            {file.fileName}
-                          </p>
-                          <p className="text-[10px] text-warm-400 mt-0.5">
-                            {file.mediaFileTypeDescription}
-                            {file.fileSize ? ` · ${formatBytes(file.fileSize)}` : ''}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteMedia(file)}
-                          className="p-1 rounded-md bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0"
-                        >
-                          <TrashIcon className="w-3 h-3" />
+                  return (
+                    <div
+                      key={file.id}
+                      className="group rounded-xl overflow-hidden bg-warm-50 border border-warm-100 hover:border-warm-200 transition-colors"
+                    >
+                      {/* PREVIEW */}
+                      {type === 'IMAGE' ? (
+                        <button onClick={() => setLightboxMedia(file)}>
+                          <div className="w-full aspect-square bg-warm-100">
+                            <img
+                              src={file.fileUrl}
+                              alt={file.fileName}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         </button>
-                      </div>
-                      {file.description && (
-                        <p className="text-[10px] text-warm-400 mt-1 line-clamp-1 italic">
-                          {file.description}
-                        </p>
+                      ) : type === 'VIDEO' ? (
+                        <div className="w-full aspect-square flex items-center justify-center bg-purple-50">
+                          <VideoIcon className="w-8 h-8 text-purple-300" />
+                        </div>
+                      ) : (
+                        <a
+                          href={file.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full aspect-square flex items-center justify-center bg-warm-100 hover:bg-warm-200 transition-colors"
+                        >
+                          <FileIcon className="w-8 h-8 text-warm-300" />
+                        </a>
                       )}
+
+                      {/* INFO */}
+                      <div className="p-2">
+                        <div className="flex items-start justify-between gap-1">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-warm-700 font-medium truncate">
+                              {file.fileName}
+                            </p>
+                            <p className="text-[10px] text-warm-400 mt-0.5">
+                              {file.mediaFileTypeDescription}
+                              {file.fileSize ? ` · ${formatBytes(file.fileSize)}` : ''}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteMedia(file)}
+                            className="p-1 rounded-md bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0"
+                          >
+                            <TrashIcon className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {file.description && (
+                          <p className="text-[10px] text-warm-400 mt-1 line-clamp-1 italic">
+                            {file.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -136,7 +136,7 @@ export function TreeAddressesPanel({ treeId, onClose }: TreeAddressesPanelProps)
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {addr.addressType && (
                         <span className="px-2 py-0.5 bg-warm-100 rounded-md text-xs text-warm-600">
-                          {addr.addressType}
+                          {addr.addressTypeDescription}
                         </span>
                       )}
                       {addr.isPrimary && (

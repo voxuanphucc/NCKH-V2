@@ -19,9 +19,9 @@ function joinUrl(baseUrl: string, endpoint: string): string {
 }
 
 export async function request<T>(
-endpoint: string,
-options: RequestInit = {})
-: Promise<ApiResponse<T>> {
+  endpoint: string,
+  options: RequestInit = {})
+  : Promise<ApiResponse<T>> {
   const token = getToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>)
@@ -49,41 +49,27 @@ options: RequestInit = {})
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
-    const message =
-    errorBody?.message || `HTTP ${response.status}: ${response.statusText}`;
-    
-    // Debug log để xem backend trả gì (không log token)
-    // Chỉ log khi đang ở môi trường dev (localhost) và KHÔNG phải 404
-    if (window.location.hostname === 'localhost' && response.status !== 404) {
-      // eslint-disable-next-line no-console
-      console.error('API error detail:', {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody
-      });
+
+    const validationErrors = errorBody?.data;
+    let message =
+      errorBody?.message || `HTTP ${response.status}: ${response.statusText}`;
+
+    if (validationErrors && typeof validationErrors === 'object') {
+      const firstError = Object.values(validationErrors)[0];
+      if (firstError) message = String(firstError);
     }
-    
-    // Show error toast based on status code
-    if (response.status === 401) {
-      showErrorToast('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
-      // Clear token and redirect to login
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    } else if (response.status === 403) {
-      showErrorToast('Bạn không có quyền để thực hiện hành động này');
-    } else if (response.status === 404) {
-      // Silently handle 404 errors (optional endpoints may not be implemented yet)
-      // showErrorToast('Tài nguyên không được tìm thấy');
-    } else if (response.status === 409) {
-      showErrorToast('Xung đột dữ liệu: ' + message);
-    } else if (response.status >= 500) {
-      showErrorToast('Lỗi máy chủ, vui lòng thử lại sau');
-    } else if (response.status >= 400) {
-      showErrorToast(message);
+
+    // handle status
+    if (response.status === 400 && validationErrors) {
+      // 👇 throw structured error
+      throw {
+        type: 'validation',
+        message,
+        errors: validationErrors
+      };
     }
-    
+
+    showErrorToast(message);
     throw new Error(message);
   }
 

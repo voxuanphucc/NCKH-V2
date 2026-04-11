@@ -9,8 +9,8 @@ export interface Address {
   country: string;
   latitude: number;
   longitude: number;
-  placeId: string;
   addressType: string;
+  addressTypeDescription: string;
   fromDate: string;
   toDate: string;
   isPrimary: boolean;
@@ -27,7 +27,6 @@ export interface CreateAddressRequest {
   country: string;
   latitude?: number;
   longitude?: number;
-  placeId?: string;
   addressTypeId: string;
   fromDate?: string;
   toDate?: string;

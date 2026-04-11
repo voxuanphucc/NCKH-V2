@@ -74,8 +74,8 @@ export function TreeMediaGallery({
     }
   };
 
-  const filteredMedia = media.filter(m => 
-    filterType === 'all' || m.mediaFileType === filterType
+  const filteredMedia = media.filter(m =>
+    filterType === 'all' || m.mediaFileType.toUpperCase() === filterType
   );
 
   const getMediaIcon = (type: string) => {
@@ -92,7 +92,7 @@ export function TreeMediaGallery({
   };
 
   const getMediaPreview = (mediaItem: MediaFile) => {
-    if (mediaItem.mediaFileType === 'IMAGE') {
+    if (mediaItem.mediaFileType.toUpperCase() === 'IMAGE') {
       return (
         <img
           src={mediaItem.fileUrl}
@@ -154,12 +154,15 @@ export function TreeMediaGallery({
             <button
               key={type}
               onClick={() => setFilterType(type as any)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                filterType === type
-                  ? 'bg-heritage-gold text-white'
-                  : 'bg-warm-100 text-warm-700 hover:bg-warm-200'
-              }`}>
-              {labels[type]} ({media.filter(m => type === 'all' || m.mediaFileType === type).length})
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${filterType === type
+                ? 'bg-heritage-gold text-white'
+                : 'bg-warm-100 text-warm-700 hover:bg-warm-200'
+                }`}>
+              {labels[type]} (
+              {media.filter(m =>
+                type === 'all' || m.mediaFileType?.toUpperCase() === type
+              ).length}
+              )
             </button>
           );
         })}
@@ -190,7 +193,7 @@ export function TreeMediaGallery({
                   <div className="w-full h-full">
                     {getMediaPreview(mediaItem)}
                   </div>
-                  
+
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center gap-2">
                     <button

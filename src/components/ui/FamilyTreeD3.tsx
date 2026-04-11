@@ -41,6 +41,7 @@ export function FamilyTreeD3({
     const height = wrapperRef.current.clientHeight;
     // Clear previous render
     svg.selectAll('*').remove();
+    svg.attr('id', 'family-tree-svg');
     // 1. Build hierarchy from flat data
     const hierarchyData = buildHierarchy(graph);
     if (!hierarchyData) return;
@@ -293,7 +294,6 @@ export function FamilyTreeD3({
           }) || personFamilies[0];
 
         node.familyId = primaryFamily.id;
-        node.unionType = primaryFamily.unionType;
 
         const spouseId =
           primaryFamily.parent1Id === personId

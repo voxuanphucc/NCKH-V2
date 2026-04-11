@@ -45,6 +45,8 @@ import { AddEventModal } from '../../components/ui/AddEventModal';
 import { EventDetailPanel } from '../../components/ui/EventDetailPanel';
 import { TreeMediaGallery } from '../../components/ui/TreeMediaGallery';
 import { MediaUploadModal } from '../../components/ui/MediaUploadModal';
+import { DownloadIcon } from 'lucide-react';
+import { ExportTreeModal } from '@/components/ui/ExportTreeModal';
 
 export function TreeDetailPage() {
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ export function TreeDetailPage() {
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TreeEvent | null>(null);
   const [showTreeMedia, setShowTreeMedia] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const [showUploadTreeMedia, setShowUploadTreeMedia] = useState(false);
   // Add person modal state
   const [addPersonMode, setAddPersonMode] = useState<
@@ -595,6 +598,12 @@ export function TreeDetailPage() {
 
             <ImageIcon className="w-4 h-4" />
           </button>
+          <button
+            onClick={() => setShowExport(true)}
+            className="p-2.5 rounded-xl border border-warm-200 text-warm-500 hover:bg-warm-50 transition-colors"
+            title="Xuất file">
+            <DownloadIcon className="w-4 h-4" />
+          </button>
 
           {/* Settings Menu */}
           <div className="relative">
@@ -904,6 +913,14 @@ export function TreeDetailPage() {
           targetPersonName={getTargetPersonName()} />
 
       }
+      <ExportTreeModal
+        isOpen={showExport}
+        treeName={tree.name}
+        treeSelector="#family-tree-svg"
+        graph={graph}                        // ← thêm prop này
+        selectedPersonId={selectedPersonId}  // ← thêm prop này
+        onClose={() => setShowExport(false)}
+      />;
     </div>);
 
 }

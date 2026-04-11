@@ -43,9 +43,6 @@ export function PersonsDirectoryPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-heading text-2xl font-bold text-warm-800">Danh bạ Person</h1>
-          <p className="text-sm text-warm-500">
-            Tìm kiếm theo `GET /api/v1/persons` và tạo mới theo `POST /api/v1/persons`.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

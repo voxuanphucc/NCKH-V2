@@ -4,15 +4,16 @@ import type {
   Person,
   CreatePersonRequest,
   CreateSpouseRequest,
-  CreateParentRequest } from
-'../types/person';
+  CreateParentRequest
+} from
+  '../types/person';
 import { validateField, showErrorToast } from '../utils/validation';
 
 export const familyService = {
   getGraph: (treeId: string) => request<TreeGraph>(`/trees/${treeId}/graph`),
 
   getPersonFamily: (treeId: string, personId: string) =>
-  request<FamilyInfo>(`/trees/${treeId}/persons/${personId}/family`),
+    request<FamilyInfo>(`/trees/${treeId}/persons/${personId}/family`),
 
   createFirstPerson: (treeId: string, data: CreatePersonRequest) => {
     const firstNameError = validateField('person', 'firstName', data.firstName);
@@ -90,13 +91,26 @@ export const familyService = {
   },
 
   deleteFamily: (treeId: string, familyId: string) =>
-  request<string>(`/trees/${treeId}/families/${familyId}`, {
-    method: 'DELETE'
-  }),
+    request<string>(`/trees/${treeId}/families/${familyId}`, {
+      method: 'DELETE'
+    }),
 
   removeChild: (treeId: string, familyId: string, personId: string) =>
-  request<string>(
-    `/trees/${treeId}/families/${familyId}/children/${personId}`,
-    { method: 'DELETE' }
-  )
+    request<string>(
+      `/trees/${treeId}/families/${familyId}/children/${personId}`,
+      { method: 'DELETE' }
+    ),
+  checkDeletable: (treeId: string, personId: string) =>
+    request<{
+      deletable: boolean;
+      orphanedPersonIds: string[];
+      orphanedPersonNames: string[];
+      message: string | null;
+    }>(`/trees/${treeId}/persons/${personId}/deletable`),
+
+  hardDeletePerson: (treeId: string, personId: string) =>
+    request<void>(`/trees/${treeId}/persons/${personId}`, {
+      method: 'DELETE'
+    }),
+
 };
