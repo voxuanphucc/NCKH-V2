@@ -6,7 +6,18 @@ import type {
 } from
   '../types/event';
 import { validateField, showErrorToast } from '../utils/validation';
+export interface CreatePersonEventRequest {
+  name: string;
+  description?: string;
+  startedAt: string;
+  endedAt?: string;
 
+  personId: string;
+  eventTypeId: string;
+  roleName?: string;
+
+  addressId?: string;
+}
 export const eventService = {
   getTreeEvents: (treeId: string) =>
     request<TreeEvent[]>(`/trees/${treeId}/events`),
@@ -69,5 +80,52 @@ export const eventService = {
       method: 'PUT',
       body: JSON.stringify(data)
     });
-  }
+  },
+
+  createPersonEvent: (treeId: string, data: CreatePersonEventRequest) => {
+    const nameError = validateField('event', 'name', data.name);
+    const startedAtError = validateField('event', 'startedAt', data.startedAt);
+    const endedAtError = validateField('event', 'endedAt', data.endedAt, data.startedAt);
+
+    if (!data.eventTypeId) {
+      showErrorToast('Loại sự kiện là bắt buộc');
+      return Promise.reject(new Error('Validation failed'));
+    }
+
+    const errors = [nameError, startedAtError, endedAtError].filter(Boolean);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => showErrorToast(error!));
+      return Promise.reject(new Error('Validation failed'));
+    }
+
+    return request<TreeEvent>(`/trees/${treeId}/events/person-event`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  updatePersonEvent: (treeId: string, eventId: string, data: CreatePersonEventRequest) => {
+    const nameError = validateField('event', 'name', data.name);
+    const startedAtError = validateField('event', 'startedAt', data.startedAt);
+    const endedAtError = validateField('event', 'endedAt', data.endedAt, data.startedAt);
+
+    if (!data.eventTypeId) {
+      showErrorToast('Loại sự kiện là bắt buộc');
+      return Promise.reject(new Error('Validation failed'));
+    }
+
+    const errors = [nameError, startedAtError, endedAtError].filter(Boolean);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => showErrorToast(error!));
+      return Promise.reject(new Error('Validation failed'));
+    }
+
+    return request<TreeEvent>(`/trees/${treeId}/events/${eventId}/person-event`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
 };

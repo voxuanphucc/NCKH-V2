@@ -37,6 +37,7 @@ import type { Gender } from '../../types/common';
 import { formatDate } from '../../utils/formatDate';
 import { UploadMediaModal } from './UploadMediaModal';
 import { formatBytes } from '@/utils/fomartBytes';
+import { CreatePersonEventModal } from './CreatePersonEventModal';
 interface PersonDetailPanelProps {
   personId: string;
   treeId: string;
@@ -680,9 +681,6 @@ export function PersonDetailPanel({
                               >
                                 <UserIcon className="w-2.5 h-2.5 text-warm-400" />
                                 {p.person.fullName}
-                                {p.roleInEvent ? (
-                                  <span className="text-heritage-gold/70"> · {p.roleInEvent}</span>
-                                ) : null}
                               </span>
                             ))}
                             {event.participants.length > 3 && (
@@ -919,17 +917,16 @@ export function PersonDetailPanel({
         onSuccess={handleAddressSuccess}
       />
 
-      <AddEventModal
+      <CreatePersonEventModal
         isOpen={showEventModal}
         mode={eventModalMode}
         event={selectedEventToEdit}
         treeId={treeId}
-        defaultPersonId={personId}
-        defaultPersonName={person?.fullName}
-        treePersons={graph?.persons.map((p) => ({ id: p.id, fullName: p.fullName })) ?? []}
+        personId={personId} // ✅ đổi tên ở đây
         onClose={() => setShowEventModal(false)}
         onSuccess={handleEventSuccess}
       />
+
       <ConfirmationModal
         isOpen={showDeleteMediaConfirm}
         title="Xóa file này?"

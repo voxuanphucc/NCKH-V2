@@ -4,5 +4,6 @@ export interface MediaFile {
   fileName: string;
   fileSize: number;
   mediaFileType: string;
+  mediaFileTypeDescription: string;
   description: string;
 }
