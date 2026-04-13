@@ -15,6 +15,8 @@ import { AdminUserViewerPage } from './pages/AdminUserViewer';
 import { OAuthCallbackPage } from './pages/OAuthCallback';
 import { Layout } from './components/layout/Layout';
 import { HeritageMapPage } from './pages/Heritagemappage/Heritagemappage';
+import { TreeEventsPage } from './pages/TreeEvent/TreeEventPage';
+import { FamilyTreeSharePage } from './pages/FamilyTreeShare/FamilyTreeSharePage';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -26,6 +28,7 @@ function AppContent() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<LoginPage />} />
       <Route path="/share" element={<ShareTreeViewer />} />
+      <Route path="/family-tree-share" element={<FamilyTreeSharePage />} />
       <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
       <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
 
@@ -40,6 +43,9 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
+      <Route path="/events" element={
+        <ProtectedRoute><Layout><TreeEventsPage /></Layout></ProtectedRoute>
+      } />
       <Route
         path="/heritage-map"
         element={

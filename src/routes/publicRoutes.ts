@@ -6,23 +6,27 @@ export interface RouteConfig {
 }
 
 export const publicRoutes: RouteConfig[] = [
-{
-  path: '/login',
-  page: 'login'
-},
-{
-  path: '/register',
-  page: 'register'
-},
-{
-  path: '/share',
-  page: 'share'
-},
-{
-  path: '/accept-invitation',
-  page: 'accept-invitation'
-},
-{
-  path: '/oauth-callback',
-  page: 'oauth-callback'
-}];
+  {
+    path: '/login',
+    page: 'login'
+  },
+  {
+    path: '/register',
+    page: 'register'
+  },
+  {
+    path: '/share',
+    page: 'share'
+  },
+  {
+    path: '/family-tree-share',
+    page: 'family-tree-share'
+  },
+  {
+    path: '/accept-invitation',
+    page: 'accept-invitation'
+  },
+  {
+    path: '/oauth-callback',
+    page: 'oauth-callback'
+  }];

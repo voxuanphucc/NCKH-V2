@@ -73,50 +73,55 @@ export function PersonMediaGallery({
       setDeleting(null);
     }
   };
-
-  const filteredMedia = media.filter(m => 
-    filterType === 'all' || m.mediaFileType === filterType
-  );
-
-  const getMediaIcon = (type: string) => {
-    switch (type) {
-      case 'IMAGE':
-        return <ImageIcon className="w-4 h-4" />;
-      case 'VIDEO':
-        return <PlayCircleIcon className="w-4 h-4" />;
-      case 'DOCUMENT':
-        return <FileIcon className="w-4 h-4" />;
-      default:
-        return <FileIcon className="w-4 h-4" />;
-    }
+  const getSimpleType = (item: MediaFile): 'IMAGE' | 'VIDEO' | 'DOCUMENT' => {
+    const url = item.fileUrl.toLowerCase();
+    if (url.match(/\.(mp4|mov|avi|webm|mkv)(\?|$)/)) return 'VIDEO';
+    if (url.match(/\.(pdf|doc|docx|xls|xlsx)(\?|$)/)) return 'DOCUMENT';
+    return 'IMAGE';
   };
 
-  const getMediaPreview = (mediaItem: MediaFile) => {
-    if (mediaItem.mediaFileType === 'IMAGE') {
+  const filteredMedia = media.filter(
+    (m) => filterType === 'all' || getSimpleType(m) === filterType
+  );
+
+  const getMediaIcon = (item: MediaFile) => {
+    const type = getSimpleType(item);
+    if (type === 'IMAGE') return <ImageIcon className="w-4 h-4" />;
+    if (type === 'VIDEO') return <PlayCircleIcon className="w-4 h-4" />;
+    return <FileIcon className="w-4 h-4" />;
+  };
+
+  const getMediaPreview = (mediaItem: MediaFile, cover = false) => {
+    const type = getSimpleType(mediaItem);
+
+    if (type === 'VIDEO') {
       return (
-        <img
+        <video
           src={mediaItem.fileUrl}
-          alt={mediaItem.description || 'Media'}
-          className="w-full h-full object-cover"
+          controls={!cover}
+          muted
+          playsInline
+          preload="metadata"
+          className={`w-full h-full ${cover ? 'object-cover' : 'object-contain'}`}
         />
       );
-    } else if (mediaItem.mediaFileType === 'VIDEO') {
-      return (
-        <div className="relative w-full h-full bg-warm-100 flex items-center justify-center">
-          <video
-            src={mediaItem.fileUrl}
-            className="max-w-full max-h-full object-cover"
-            controls
-          />
-        </div>
-      );
-    } else {
+    }
+
+    if (type === 'DOCUMENT') {
       return (
         <div className="w-full h-full bg-warm-100 flex items-center justify-center">
           <FileIcon className="w-12 h-12 text-warm-400" />
         </div>
       );
     }
+
+    return (
+      <img
+        src={mediaItem.fileUrl}
+        alt={mediaItem.description || 'Media'}
+        className={`w-full h-full ${cover ? 'object-cover' : 'object-contain'}`}
+      />
+    );
   };
 
   return (
@@ -147,11 +152,10 @@ export function PersonMediaGallery({
             <button
               key={type}
               onClick={() => setFilterType(type as any)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                filterType === type
-                  ? 'bg-heritage-gold text-white'
-                  : 'bg-warm-100 text-warm-700 hover:bg-warm-200'
-              }`}>
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${filterType === type
+                ? 'bg-heritage-gold text-white'
+                : 'bg-warm-100 text-warm-700 hover:bg-warm-200'
+                }`}>
               {labels[type]} ({media.filter(m => type === 'all' || m.mediaFileType === type).length})
             </button>
           );
@@ -181,9 +185,9 @@ export function PersonMediaGallery({
                   className="group relative aspect-square rounded-lg overflow-hidden bg-warm-100 cursor-pointer hover:ring-2 ring-heritage-gold transition-all"
                   onClick={() => setSelectedMedia(mediaItem)}>
                   <div className="w-full h-full">
-                    {getMediaPreview(mediaItem)}
+                    {getMediaPreview(mediaItem, true)}
                   </div>
-                  
+
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center gap-2">
                     <button
@@ -203,7 +207,7 @@ export function PersonMediaGallery({
 
                   {/* Media Type Badge */}
                   <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1 rounded">
-                    {getMediaIcon(mediaItem.mediaType)}
+                    {getMediaIcon(mediaItem)}
                   </div>
                 </div>
               ))}

@@ -162,7 +162,7 @@ export function CreatePersonEventModal({
                 }
             })
             .catch(() => showErrorToast('Không thể tải danh sách địa chỉ'));
-    }, [isOpen, treeId]);
+    }, [isOpen, treeId]);   
 
     // ── Load address types when switching to new address mode ────────────────────
     useEffect(() => {

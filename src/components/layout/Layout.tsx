@@ -9,7 +9,8 @@ import {
   HomeIcon,
   SettingsIcon,
   ChevronRightIcon,
-  MapPinIcon
+  MapPinIcon,
+  CalendarDaysIcon
 } from
   'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -28,6 +29,7 @@ export function Layout({ children }: LayoutProps) {
     { id: 'dashboard', label: 'Trang chủ', icon: HomeIcon, href: '/dashboard' },
     { id: 'trees', label: 'Cây gia phả', icon: TreesIcon, href: '/dashboard#trees' },
     { id: 'map', label: 'Bản đồ di tích', icon: MapPinIcon, href: '/heritage-map' },
+    { id: 'events', label: 'Sự kiện', icon: CalendarDaysIcon, href: '/events' },
     { id: 'persons', label: 'Danh bạ person', icon: UsersIcon, href: '/persons' },
     { id: 'profile', label: 'Hồ sơ cá nhân', icon: UserIcon, href: '/profile' },
     { id: 'settings', label: 'Cài đặt', icon: SettingsIcon, href: '/profile#password' },

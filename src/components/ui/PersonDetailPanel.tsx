@@ -747,7 +747,7 @@ export function PersonDetailPanel({
                           {addr.formattedAddress || `${addr.addressLine}, ${addr.ward}, ${addr.district}, ${addr.city}`}
                         </p>
                         {addr.addressType && (
-                          <span className="inline-block mt-1 px-2 py-0.5 bg-warm-100 rounded-md text-xs text-warm-500">{addr.addressType}</span>
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-warm-100 rounded-md text-xs text-warm-500">{addr.addressTypeDescription}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">

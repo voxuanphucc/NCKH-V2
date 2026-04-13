@@ -72,13 +72,7 @@ const OPTIONS: ExportOption[] = [
         icon: <FileIcon className="w-5 h-5" />,
         color: 'text-red-500',
     },
-    {
-        format: 'svg',
-        label: 'Vector SVG',
-        desc: 'Đồ họa vector (không có avatar)',
-        icon: <CodeIcon className="w-5 h-5" />,
-        color: 'text-green-500',
-    },
+
 ];
 
 // Giống FamilyTreeD3
@@ -593,8 +587,8 @@ export function ExportTreeModal({
                             type="button"
                             onClick={() => setSelected(opt.format)}
                             className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${selected === opt.format
-                                    ? 'border-heritage-gold bg-heritage-gold/5'
-                                    : 'border-warm-100 hover:border-warm-200 hover:bg-warm-50'
+                                ? 'border-heritage-gold bg-heritage-gold/5'
+                                : 'border-warm-100 hover:border-warm-200 hover:bg-warm-50'
                                 }`}
                         >
                             <span className={opt.color}>{opt.icon}</span>
@@ -604,8 +598,8 @@ export function ExportTreeModal({
                             </div>
                             <div
                                 className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-colors ${selected === opt.format
-                                        ? 'border-heritage-gold bg-heritage-gold'
-                                        : 'border-warm-300'
+                                    ? 'border-heritage-gold bg-heritage-gold'
+                                    : 'border-warm-300'
                                     }`}
                             />
                         </button>
@@ -623,8 +617,8 @@ export function ExportTreeModal({
                                         type="button"
                                         onClick={() => setScale(s)}
                                         className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${scale === s
-                                                ? 'border-heritage-gold bg-heritage-gold/10 text-heritage-gold'
-                                                : 'border-warm-200 text-warm-500 hover:border-warm-300'
+                                            ? 'border-heritage-gold bg-heritage-gold/10 text-heritage-gold'
+                                            : 'border-warm-200 text-warm-500 hover:border-warm-300'
                                             }`}
                                     >
                                         {s}x {s === 1 ? '(thường)' : s === 2 ? '(cao)' : '(rất cao)'}
