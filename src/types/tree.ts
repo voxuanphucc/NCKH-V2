@@ -33,3 +33,22 @@ export interface TreeGraph {
   families?: any[];
   meta?: any;
 }
+
+export interface RelationshipPersonNode {
+  id: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  gender: number; // 1=MALE, 2=FEMALE
+  relation: string | null;
+}
+
+export interface RelationshipData {
+  fromPerson: RelationshipPersonNode;
+  toPerson: RelationshipPersonNode;
+  relationshipFromA: string;
+  relationshipFromB: string;
+  generationDiff: number;
+  path: RelationshipPersonNode[];
+}

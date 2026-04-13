@@ -24,7 +24,9 @@ export const privateRoutes: RouteConfig[] = [
   },
 
   { path: '/heritage-map', page: 'heritage-map' },
+  { path: '/funds', page: 'funds' },
   { path: '/events', page: 'events' },
+
   {
     path: '/settings',
     page: 'settings'

@@ -10,7 +10,8 @@ import {
   SettingsIcon,
   ChevronRightIcon,
   MapPinIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  BanknoteIcon
 } from
   'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -26,10 +27,10 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { id: 'dashboard', label: 'Trang chủ', icon: HomeIcon, href: '/dashboard' },
-    { id: 'trees', label: 'Cây gia phả', icon: TreesIcon, href: '/dashboard#trees' },
+    { id: 'trees', label: 'Cây gia phả', icon: TreesIcon, href: '/dashboard' },
     { id: 'map', label: 'Bản đồ di tích', icon: MapPinIcon, href: '/heritage-map' },
     { id: 'events', label: 'Sự kiện', icon: CalendarDaysIcon, href: '/events' },
+    { id: 'funds', label: 'Quỹ', icon: BanknoteIcon, href: '/funds' },
     { id: 'persons', label: 'Danh bạ person', icon: UsersIcon, href: '/persons' },
     { id: 'profile', label: 'Hồ sơ cá nhân', icon: UserIcon, href: '/profile' },
     { id: 'settings', label: 'Cài đặt', icon: SettingsIcon, href: '/profile#password' },
@@ -57,7 +58,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="p-6 border-b border-warm-700/50">
           <button
             onClick={() => {
-              navigate('/dashboard');
+              navigate('/');
               setSidebarOpen(false);
             }}
             className="flex items-center gap-3">

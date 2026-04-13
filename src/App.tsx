@@ -17,6 +17,7 @@ import { Layout } from './components/layout/Layout';
 import { HeritageMapPage } from './pages/Heritagemappage/Heritagemappage';
 import { TreeEventsPage } from './pages/TreeEvent/TreeEventPage';
 import { FamilyTreeSharePage } from './pages/FamilyTreeShare/FamilyTreeSharePage';
+import { FundEventPage } from './pages/FundEvent/FundEventPage';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -45,6 +46,9 @@ function AppContent() {
       />
       <Route path="/events" element={
         <ProtectedRoute><Layout><TreeEventsPage /></Layout></ProtectedRoute>
+      } />
+      <Route path="/funds" element={
+        <ProtectedRoute><Layout><FundEventPage /></Layout></ProtectedRoute>
       } />
       <Route
         path="/heritage-map"

@@ -1,5 +1,5 @@
 import { request } from '../config/axios';
-import type { Tree, CreateTreeRequest, TreeMember, TreeGraph } from '../types/tree';
+import type { Tree, CreateTreeRequest, TreeMember, TreeGraph, RelationshipData } from '../types/tree';
 import type { TreeRole } from '../types/common';
 import { validateField, showErrorToast } from '../utils/validation';
 
@@ -51,19 +51,21 @@ export const treeService = {
   },
 
   deleteTree: (treeId: string) =>
-  request<string>(`/trees/${treeId}`, { method: 'DELETE' }),
+    request<string>(`/trees/${treeId}`, { method: 'DELETE' }),
 
   leaveTree: (treeId: string) =>
-  request<string>(`/trees/${treeId}/leave`, { method: 'POST' }),
+    request<string>(`/trees/${treeId}/leave`, { method: 'POST' }),
 
   getMembers: (treeId: string) =>
-  request<TreeMember[]>(`/trees/${treeId}/members`),
+    request<TreeMember[]>(`/trees/${treeId}/members`),
 
   removeMember: (treeId: string, userId: string) =>
-  request<string>(`/trees/${treeId}/members/${userId}`, { method: 'DELETE' }),
+    request<string>(`/trees/${treeId}/members/${userId}`, { method: 'DELETE' }),
 
   changeMemberRole: (treeId: string, userId: string, role: TreeRole) =>
-  request<string>(`/trees/${treeId}/members/${userId}/role?role=${role}`, {
-    method: 'PATCH'
-  })
+    request<string>(`/trees/${treeId}/members/${userId}/role?role=${role}`, {
+      method: 'PATCH'
+    }),
+  getRelationship: (treeId: string, personAId: string, personBId: string) =>
+    request<RelationshipData>(`/trees/${treeId}/relationship?personAId=${personAId}&personBId=${personBId}`),
 };
